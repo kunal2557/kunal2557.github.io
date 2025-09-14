@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,8 +16,10 @@ import {
   Clock,
   IndianRupee,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Loader2
 } from "lucide-react";
+import type { ParkingSpot } from "@shared/schema";
 
 interface UserDashboardProps {
   onShowBooking: () => void;
@@ -24,64 +27,94 @@ interface UserDashboardProps {
   onShowProfile: () => void;
 }
 
-// Mock parking spots data //todo: remove mock functionality
-const parkingSpots = [
-    {
-      id: '1',
-      name: 'Premium Spot - CP',
-      distance: '50m away',
-      price: 45,
-      type: 'premium',
-      rating: 4.8,
-      reviews: 124,
-      viewers: 3,
-      availability: 'available'
-    },
-    {
-      id: '2', 
-      name: 'Saver Parking',
-      distance: '300m away', 
-      price: 25,
-      type: 'saver',
-      rating: 4.2,
-      reviews: 67,
-      viewers: 8,
-      availability: 'limited'
-    },
-    {
-      id: '3',
-      name: 'Suggested Spot',
-      distance: '150m away',
-      price: 35,
-      type: 'suggested', 
-      rating: 4.6,
-      reviews: 89,
-      viewers: 2,
-      availability: 'available'
-    }
-  ];
+// Helper function to determine availability status
+const getAvailabilityStatus = (availableSpots: number) => {
+  if (availableSpots <= 0) return 'unavailable';
+  if (availableSpots <= 2) return 'limited';
+  return 'available';
+};
 
 export default function UserDashboard({ onShowBooking, onSwitchToVendor, onShowProfile }: UserDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
   const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
   const [spotsExpanded, setSpotsExpanded] = useState(true);
-  const [filteredSpots, setFilteredSpots] = useState(parkingSpots);
+  const [selectedCity, setSelectedCity] = useState('Delhi');
+
+  // Fetch parking spots from API
+  const { data: parkingSpots = [], isLoading, error, refetch } = useQuery<ParkingSpot[]>({
+    queryKey: ['/api/spots'],  // Keep static key, filter client-side
+    enabled: true,
+    select: (data) => data || []
+  });
+
+  // Calculate filtered spots based on search and city
+  const filteredSpots = parkingSpots.filter(spot => {
+    const matchesSearch = !searchQuery || 
+      spot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      spot.address.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCity = spot.city === selectedCity;
+    return matchesSearch && matchesCity;
+  });
 
   // Search functionality
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredSpots(parkingSpots);
-    } else {
-      const filtered = parkingSpots.filter(spot => 
-        spot.name.toLowerCase().includes(query.toLowerCase()) ||
-        spot.distance.toLowerCase().includes(query.toLowerCase()) ||
-        spot.type.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredSpots(filtered);
-    }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="bg-primary text-primary-foreground p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5" />
+                <span className="font-medium">SmartPark</span>
+                <span className="text-primary-foreground/80">Delhi NCR</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center h-96">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p>Loading parking spots...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="bg-primary text-primary-foreground p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5" />
+                <span className="font-medium">SmartPark</span>
+                <span className="text-primary-foreground/80">Delhi NCR</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center space-y-4">
+            <p className="text-red-600">Error loading parking spots</p>
+            <Button onClick={() => refetch()}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'hi' : 'en');
@@ -333,20 +366,20 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor, onShowP
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center space-x-2">
                         <Badge 
-                          className={`${getSpotColor(spot.type)} text-white`}
-                          data-testid={`badge-type-${spot.type}`}
+                          className={`${getSpotColor(spot.spotType)} text-white`}
+                          data-testid={`badge-type-${spot.spotType}`}
                         >
-                          {spot.type === 'premium' ? currentContent.premium : 
-                           spot.type === 'saver' ? currentContent.saver : 'Suggested'}
+                          {spot.spotType === 'premium' ? currentContent.premium : 
+                           spot.spotType === 'saver' ? currentContent.saver : 'Suggested'}
                         </Badge>
                         <div className="flex items-center space-x-1">
                           <div className={`w-2 h-2 rounded-full ${
-                            spot.availability === 'available' ? 'bg-parking-available' :
-                            spot.availability === 'limited' ? 'bg-parking-limited' : 
+                            getAvailabilityStatus(spot.availableSpots) === 'available' ? 'bg-parking-available' :
+                            getAvailabilityStatus(spot.availableSpots) === 'limited' ? 'bg-parking-limited' : 
                             'bg-parking-unavailable'
                           }`} />
-                          <span className={`text-sm ${getAvailabilityColor(spot.availability)}`}>
-                            {spot.availability}
+                          <span className={`text-sm ${getAvailabilityColor(getAvailabilityStatus(spot.availableSpots))}`}>
+                            {getAvailabilityStatus(spot.availableSpots)}
                           </span>
                         </div>
                       </div>
@@ -357,7 +390,7 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor, onShowP
                         </h4>
                         <p className="text-sm text-muted-foreground flex items-center space-x-1" data-testid={`text-spot-distance-${spot.id}`}>
                           <MapPin className="h-3 w-3" />
-                          <span>{spot.distance}</span>
+                          <span>{spot.address}</span>
                         </p>
                       </div>
 
@@ -380,7 +413,7 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor, onShowP
                       <div className="flex items-center space-x-1">
                         <IndianRupee className="h-4 w-4" />
                         <span className="text-xl font-bold" data-testid={`text-spot-price-${spot.id}`}>
-                          {spot.price}
+                          {spot.pricePerHour}
                         </span>
                         <span className="text-sm text-muted-foreground">/hour</span>
                       </div>
@@ -390,11 +423,11 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor, onShowP
                           onShowBooking();
                         }}
                         size="sm"
-                        className={`${getSpotColor(spot.type)} text-white hover:opacity-90`}
+                        className={`${getSpotColor(spot.spotType)} text-white hover:opacity-90`}
                         data-testid={`button-book-${spot.id}`}
                       >
-                        {spot.type === 'premium' ? currentContent.reserveNow :
-                         spot.type === 'saver' ? currentContent.bookSaver :
+                        {spot.spotType === 'premium' ? currentContent.reserveNow :
+                         spot.spotType === 'saver' ? currentContent.bookSaver :
                          currentContent.bookNow}
                       </Button>
                     </div>

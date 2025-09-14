@@ -1,3 +1,4 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,51 +14,77 @@ import {
   Gift,
   Repeat,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { UserWallet, WalletTransaction } from "@shared/schema";
 
-export default function WalletScreen() {
+interface WalletScreenProps {
+  userId?: string;
+}
+
+export default function WalletScreen({ userId = "demo-user" }: WalletScreenProps) {
   const [addAmount, setAddAmount] = useState('');
-  
-  const walletBalance = 234;
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi');
+  const { toast } = useToast();
   
   const quickAddAmounts = [100, 200, 500, 1000];
-  
-  const transactions = [
-    {
-      id: 'TXN001',
-      type: 'debit',
-      amount: 45,
-      description: 'Parking at CP Premium',
-      date: '2 hours ago',
-      status: 'completed'
+
+  // Fetch wallet data
+  const { data: wallet, isLoading: walletLoading, error: walletError, refetch: refetchWallet } = useQuery<UserWallet>({
+    queryKey: ['/api/wallet', userId],
+    enabled: !!userId,
+  });
+
+  // Fetch transactions data
+  const { data: transactions = [], isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery<WalletTransaction[]>({
+    queryKey: ['/api/wallet', userId, 'transactions'],
+    enabled: !!userId,
+    select: (data) => data || []
+  });
+
+  // Add money mutation
+  const addMoneyMutation = useMutation({
+    mutationFn: async ({ amount, paymentMethod }: { amount: number; paymentMethod: string }) => {
+      const response = await apiRequest('POST', `/api/wallet/${userId}/add-money`, {
+        amount,
+        paymentMethod
+      });
+      return response.json();
     },
-    {
-      id: 'TXN002',
-      type: 'credit',
-      amount: 500,
-      description: 'Wallet Top-up via UPI',
-      date: 'Yesterday',
-      status: 'completed'
+    onSuccess: (_, variables) => {
+      // Invalidate and refetch wallet data
+      queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId, 'transactions'] });
+      setAddAmount('');
+      toast({
+        title: "Money Added Successfully",
+        description: `₹${variables.amount} has been added to your wallet.`,
+      });
     },
-    {
-      id: 'TXN003',
-      type: 'debit',
-      amount: 25,
-      description: 'Parking at Noida Saver',
-      date: '2 days ago',
-      status: 'completed'
-    },
-    {
-      id: 'TXN004',
-      type: 'credit',
-      amount: 50,
-      description: 'Cashback Bonus',
-      date: '3 days ago',
-      status: 'completed'
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Add Money",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     }
-  ];
+  });
+
+  // Helper function to format transaction date
+  const formatTransactionDate = (date: Date) => {
+    const transactionDate = new Date(date);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - transactionDate.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 48) return 'Yesterday';
+    return transactionDate.toLocaleDateString();
+  };
 
   const paymentMethods = [
     { id: 'upi', name: 'UPI Payment', icon: Smartphone, description: 'GooglePay, PhonePe, Paytm' },
@@ -66,9 +93,43 @@ export default function WalletScreen() {
   ];
 
   const handleAddMoney = () => {
-    // Implementation would handle payment processing
-    console.log('Adding money:', addAmount);
+    const amount = parseInt(addAmount);
+    if (!amount || amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    addMoneyMutation.mutate({ amount, paymentMethod: selectedPaymentMethod });
   };
+
+  if (walletLoading || transactionsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p>Loading wallet...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (walletError || transactionsError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-600">Error loading wallet data</p>
+          <Button onClick={() => {
+            refetchWallet();
+            refetchTransactions();
+          }}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,7 +156,7 @@ export default function WalletScreen() {
                   <div className="flex items-center space-x-2">
                     <IndianRupee className="h-6 w-6" />
                     <span className="text-3xl font-bold" data-testid="text-balance">
-                      {walletBalance}
+                      {wallet?.balance || 0}
                     </span>
                   </div>
                 </div>
@@ -112,6 +173,11 @@ export default function WalletScreen() {
                 <Button 
                   variant="secondary" 
                   className="flex-1"
+                  onClick={() => {
+                    const input = document.querySelector('[data-testid="input-custom-amount"]') as HTMLInputElement;
+                    input?.focus();
+                    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
                   data-testid="button-add-money"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -174,10 +240,17 @@ export default function WalletScreen() {
                 </div>
                 <Button 
                   onClick={handleAddMoney}
-                  disabled={!addAmount || parseInt(addAmount) < 10}
+                  disabled={!addAmount || parseInt(addAmount) < 10 || addMoneyMutation.isPending}
                   data-testid="button-proceed-payment"
                 >
-                  Add ₹{addAmount || 0}
+                  {addMoneyMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    `Add ₹${addAmount || 0}`
+                  )}
                 </Button>
               </div>
             </div>
@@ -235,7 +308,7 @@ export default function WalletScreen() {
                     </div>
                     <div>
                       <p className="font-medium">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground">{transaction.date}</p>
+                      <p className="text-sm text-muted-foreground">{formatTransactionDate(transaction.createdAt!)}</p>
                     </div>
                   </div>
                   

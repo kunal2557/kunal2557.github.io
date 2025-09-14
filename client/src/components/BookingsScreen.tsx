@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,52 +11,75 @@ import {
   Phone,
   MessageCircle,
   Check,
-  X
+  X,
+  Loader2
 } from "lucide-react";
+import type { Booking } from "@shared/schema";
 
-export default function BookingsScreen() {
-  // Mock bookings data
-  const activeBookings = [
-    {
-      id: 'BK001',
-      spotName: 'Premium Spot - CP',
-      address: 'Connaught Place, New Delhi',
-      date: 'Today',
-      time: '2:30 PM - 4:30 PM',
-      duration: '2 hours',
-      amount: 45,
-      status: 'active',
-      vehicleSpot: 'A-12',
-      hostName: 'Amit Kumar',
-      hostPhone: '+91 98765 43210'
-    },
-    {
-      id: 'BK002', 
-      spotName: 'Saver Parking',
-      address: 'Sector 18, Noida',
-      date: 'Tomorrow',
-      time: '10:00 AM - 12:00 PM',
-      duration: '2 hours',
-      amount: 25,
-      status: 'confirmed',
-      vehicleSpot: 'B-07',
-      hostName: 'Priya Sharma',
-      hostPhone: '+91 87654 32109'
-    }
-  ];
+interface BookingsScreenProps {
+  userId?: string;
+}
 
-  const pastBookings = [
-    {
-      id: 'BK003',
-      spotName: 'Mall Parking',
-      address: 'DLF Mall, Gurgaon',
-      date: 'Yesterday',
-      time: '6:00 PM - 9:00 PM',
-      duration: '3 hours',
-      amount: 60,
-      status: 'completed'
+export default function BookingsScreen({ userId = "demo-user" }: BookingsScreenProps) {
+  // Fetch bookings from API
+  const { data: bookings = [], isLoading, error, refetch } = useQuery<Booking[]>({
+    queryKey: ['/api/bookings/user', userId],
+    enabled: !!userId,
+    select: (data) => data || []
+  });
+
+  // Separate active and past bookings
+  const activeBookings = bookings.filter(booking => 
+    booking.status === 'confirmed' || booking.status === 'active'
+  );
+  
+  const pastBookings = bookings.filter(booking => 
+    booking.status === 'completed' || booking.status === 'cancelled'
+  );
+
+  // Helper function to format date/time
+  const formatDateTime = (startTime: Date, endTime: Date) => {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    let dateStr = '';
+    if (start.toDateString() === today.toDateString()) {
+      dateStr = 'Today';
+    } else if (start.toDateString() === tomorrow.toDateString()) {
+      dateStr = 'Tomorrow';
+    } else {
+      dateStr = start.toLocaleDateString();
     }
-  ];
+
+    const timeStr = `${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    
+    return { date: dateStr, time: timeStr };
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p>Loading your bookings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-600">Error loading bookings</p>
+          <Button onClick={() => refetch()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,7 +110,7 @@ export default function BookingsScreen() {
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
                         <h3 className="font-medium" data-testid={`text-spot-name-${booking.id}`}>
-                          {booking.spotName}
+                          Parking Booking #{booking.id.slice(-4)}
                         </h3>
                         <Badge 
                           variant={booking.status === 'active' ? 'default' : 'secondary'}
@@ -98,13 +122,13 @@ export default function BookingsScreen() {
                       
                       <p className="text-sm text-muted-foreground flex items-center space-x-1">
                         <MapPin className="h-3 w-3" />
-                        <span>{booking.address}</span>
+                        <span>Spot ID: {booking.spotId}</span>
                       </p>
                       
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="flex items-center space-x-1">
                           <Clock className="h-3 w-3" />
-                          <span>{booking.date} • {booking.time}</span>
+                          <span>{formatDateTime(booking.startTime, booking.endTime).date} • {formatDateTime(booking.startTime, booking.endTime).time}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Car className="h-3 w-3" />
@@ -121,7 +145,7 @@ export default function BookingsScreen() {
 
                   {/* Host Info */}
                   <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-sm font-medium mb-2">Host: {booking.hostName}</p>
+                    <p className="text-sm font-medium mb-2">Host Contact: {booking.hostContact || 'Not provided'}</p>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" className="flex-1">
                         <Phone className="h-4 w-4 mr-1" />
@@ -167,14 +191,14 @@ export default function BookingsScreen() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <h3 className="font-medium">{booking.spotName}</h3>
+                    <h3 className="font-medium">Parking Booking #{booking.id.slice(-4)}</h3>
                     <p className="text-sm text-muted-foreground flex items-center space-x-1">
                       <MapPin className="h-3 w-3" />
-                      <span>{booking.address}</span>
+                      <span>Spot ID: {booking.spotId}</span>
                     </p>
                     <p className="text-sm text-muted-foreground flex items-center space-x-1">
                       <Clock className="h-3 w-3" />
-                      <span>{booking.date} • {booking.time}</span>
+                      <span>{formatDateTime(booking.startTime, booking.endTime).date} • {formatDateTime(booking.startTime, booking.endTime).time}</span>
                     </p>
                   </div>
                   
