@@ -1,0 +1,327 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Search, 
+  MapPin, 
+  User, 
+  Mic, 
+  Globe,
+  Navigation,
+  Star,
+  Users,
+  Clock,
+  IndianRupee
+} from "lucide-react";
+
+interface UserDashboardProps {
+  onShowBooking: () => void;
+  onSwitchToVendor: () => void;
+}
+
+export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserDashboardProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+
+  // Mock parking spots data //todo: remove mock functionality
+  const parkingSpots = [
+    {
+      id: '1',
+      name: 'Premium Spot - CP',
+      distance: '50m away',
+      price: 45,
+      type: 'premium',
+      rating: 4.8,
+      reviews: 124,
+      viewers: 3,
+      availability: 'available'
+    },
+    {
+      id: '2', 
+      name: 'Saver Parking',
+      distance: '300m away', 
+      price: 25,
+      type: 'saver',
+      rating: 4.2,
+      reviews: 67,
+      viewers: 8,
+      availability: 'limited'
+    },
+    {
+      id: '3',
+      name: 'Suggested Spot',
+      distance: '150m away',
+      price: 35,
+      type: 'suggested', 
+      rating: 4.6,
+      reviews: 89,
+      viewers: 2,
+      availability: 'available'
+    }
+  ];
+
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'en' ? 'hi' : 'en');
+  };
+
+  const content = {
+    en: {
+      location: "Delhi NCR",
+      searchPlaceholder: "Where do you want to park?",
+      voice: "Voice",
+      available: "Available",
+      limited: "Few Left", 
+      unavailable: "Full",
+      premium: "Premium",
+      saver: "Saver",
+      bookNow: "BOOK NOW",
+      reserveNow: "RESERVE NOW",
+      bookSaver: "BOOK SAVER",
+      viewingNow: "people viewing"
+    },
+    hi: {
+      location: "दिल्ली एनसीआर",
+      searchPlaceholder: "आप कहाँ पार्क करना चाहते हैं?",
+      voice: "आवाज़",
+      available: "उपलब्ध",
+      limited: "कम बचे",
+      unavailable: "भरा हुआ",
+      premium: "प्रीमियम", 
+      saver: "बचत",
+      bookNow: "अभी बुक करें",
+      reserveNow: "रिज़र्व करें",
+      bookSaver: "बचत बुक करें",
+      viewingNow: "लोग देख रहे हैं"
+    }
+  };
+
+  const currentContent = content[language];
+
+  const getSpotColor = (type: string) => {
+    switch (type) {
+      case 'premium': return 'bg-parking-premium';
+      case 'saver': return 'bg-parking-saver';
+      default: return 'bg-primary';
+    }
+  };
+
+  const getAvailabilityColor = (availability: string) => {
+    switch (availability) {
+      case 'available': return 'text-parking-available';
+      case 'limited': return 'text-parking-limited';
+      case 'unavailable': return 'text-parking-unavailable';
+      default: return 'text-muted-foreground';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-primary text-primary-foreground p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <MapPin className="h-5 w-5" />
+            <span className="font-medium" data-testid="text-location">{currentContent.location}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSwitchToVendor}
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+              data-testid="button-switch-vendor"
+            >
+              Switch to Vendor
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+              data-testid="button-profile"
+            >
+              <User className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Section */}
+      <div className="p-4 bg-card border-b">
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={currentContent.searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12"
+              data-testid="input-search"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Button variant="outline" size="sm" data-testid="button-voice">
+              <Mic className="h-4 w-4 mr-2" />
+              {currentContent.voice}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              data-testid="button-language"
+            >
+              <Globe className="h-4 w-4 mr-1" />
+              {language === 'en' ? '🇮🇳हिंदी' : '🇬🇧English'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Map Section */}
+      <div className="h-64 bg-muted relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-primary/20" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <div className="bg-card p-4 rounded-lg shadow-sm">
+              <p className="font-medium" data-testid="text-map-placeholder">Interactive Map</p>
+              <p className="text-sm text-muted-foreground">
+                Shows parking spots with availability
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Map Legend */}
+        <div className="absolute top-4 left-4 bg-card p-3 rounded-lg shadow-sm space-y-2">
+          <div className="flex items-center space-x-2 text-sm">
+            <div className="w-3 h-3 rounded-full bg-parking-available" />
+            <span>{currentContent.available} (5+)</span>
+          </div>
+          <div className="flex items-center space-x-2 text-sm">
+            <div className="w-3 h-3 rounded-full bg-parking-limited" />
+            <span>{currentContent.limited} (1-4)</span>
+          </div>
+          <div className="flex items-center space-x-2 text-sm">
+            <div className="w-3 h-3 rounded-full bg-parking-unavailable" />
+            <span>{currentContent.unavailable}</span>
+          </div>
+        </div>
+
+        {/* Location Marker */}
+        <div className="absolute bottom-4 right-4 bg-card p-2 rounded-full shadow-sm">
+          <Navigation className="h-4 w-4 text-primary" />
+        </div>
+      </div>
+
+      {/* Parking Spots List */}
+      <div className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-lg" data-testid="text-spots-header">
+            Available Spots
+          </h3>
+          <Badge variant="secondary" data-testid="badge-spots-count">
+            {parkingSpots.length} spots found
+          </Badge>
+        </div>
+
+        {parkingSpots.map((spot) => (
+          <Card 
+            key={spot.id} 
+            className={`hover-elevate cursor-pointer transition-all duration-200 ${
+              selectedSpot === spot.id ? 'ring-2 ring-primary' : ''
+            }`}
+            onClick={() => setSelectedSpot(spot.id)}
+            data-testid={`card-spot-${spot.id}`}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      className={`${getSpotColor(spot.type)} text-white`}
+                      data-testid={`badge-type-${spot.type}`}
+                    >
+                      {spot.type === 'premium' ? currentContent.premium : 
+                       spot.type === 'saver' ? currentContent.saver : 'Suggested'}
+                    </Badge>
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${
+                        spot.availability === 'available' ? 'bg-parking-available' :
+                        spot.availability === 'limited' ? 'bg-parking-limited' : 
+                        'bg-parking-unavailable'
+                      }`} />
+                      <span className={`text-sm ${getAvailabilityColor(spot.availability)}`}>
+                        {spot.availability}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium" data-testid={`text-spot-name-${spot.id}`}>
+                      {spot.name}
+                    </h4>
+                    <p className="text-sm text-muted-foreground" data-testid={`text-spot-distance-${spot.id}`}>
+                      📍 {spot.distance}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span data-testid={`text-spot-rating-${spot.id}`}>{spot.rating}</span>
+                      <span className="text-muted-foreground">({spot.reviews})</span>
+                    </div>
+                    <div className="flex items-center space-x-1 text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      <span data-testid={`text-spot-viewers-${spot.id}`}>
+                        {spot.viewers} {currentContent.viewingNow}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right space-y-2">
+                  <div className="flex items-center space-x-1">
+                    <IndianRupee className="h-4 w-4" />
+                    <span className="text-xl font-bold" data-testid={`text-spot-price-${spot.id}`}>
+                      {spot.price}
+                    </span>
+                    <span className="text-sm text-muted-foreground">/hour</span>
+                  </div>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowBooking();
+                    }}
+                    size="sm"
+                    className={`${getSpotColor(spot.type)} text-white hover:opacity-90`}
+                    data-testid={`button-book-${spot.id}`}
+                  >
+                    {spot.type === 'premium' ? currentContent.reserveNow :
+                     spot.type === 'saver' ? currentContent.bookSaver :
+                     currentContent.bookNow}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="p-4 bg-card border-t">
+        <div className="flex space-x-3">
+          <Button variant="outline" className="flex-1" data-testid="button-advance-booking">
+            <Clock className="h-4 w-4 mr-2" />
+            Advance Booking
+          </Button>
+          <Button className="flex-1" onClick={onShowBooking} data-testid="button-book-now">
+            Book Now
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
