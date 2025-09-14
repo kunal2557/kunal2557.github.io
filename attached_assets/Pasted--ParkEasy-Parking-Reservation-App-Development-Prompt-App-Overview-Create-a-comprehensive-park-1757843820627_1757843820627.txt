@@ -1,0 +1,254 @@
+# ParkEasy - Parking Reservation App Development Prompt
+
+## App Overview
+Create a comprehensive parking reservation mobile app similar to Uber's design philosophy, focused on the Indian market with ₹ INR pricing and bilingual support (English/Hindi).
+
+## Unified Login System Requirements
+
+### 1. Single Registration Flow
+- **Phone Number Authentication**: Primary login via mobile OTP
+- **Role Selection Post-Login**: After successful authentication, users choose:
+  - "I want to find parking" (User mode)
+  - "I want to list my parking space" (Vendor mode)
+  - "Both" (Switch between modes)
+- **Profile Completion**:
+  - Users: Name, vehicle details (optional RC upload)
+  - Vendors: Business name, ID proof, address verification, bank/UPI details
+  - Dual-role accounts: Complete both profiles
+
+### 2. Dynamic Dashboard Based on Role
+- **Role Switcher**: Top-right toggle button to switch between User/Vendor modes
+- **Persistent Login**: Remember last used mode, but allow easy switching
+
+## User Interface (Parking Seeker) - Main Features
+
+### Home Screen - Map-First Design
+```
+Header:
+- Location pin icon + "Current Location: [Area Name]"
+- Profile avatar (top-right)
+- Role switcher toggle (User/Vendor)
+
+Search Section:
+- Large search bar: "Where do you want to park?" 
+- Language toggle (🇮🇳 हिंदी / 🇬🇧 English)
+- Voice search option
+
+Map View:
+- Real-time parking spots with color coding:
+  - 🟢 Available (5+ spots)
+  - 🟡 Few Left (1-4 spots)
+  - 🔴 Full
+  - 📍 Premium spots (closer, reserved)
+  - 💰 Saver spots (budget-friendly, slightly farther)
+
+Quick Actions Bottom Bar:
+- "Book Now" (instant nearby parking)
+- "Advance Booking" (future reservations)
+- "My Bookings"
+- "Wallet" (₹ balance display)
+```
+
+### Parking Search & Booking Flow
+
+#### Step 1: Location & Time Selection
+- **Destination Input**: Search autocomplete with popular locations
+- **Date & Time Picker**: "When do you need parking?"
+- **Duration Selector**: 30min, 1hr, 2hr, 4hr, All Day options
+- **Vehicle Type**: Two-wheeler, Car, SUV
+
+#### Step 2: Spot Comparison
+```
+Results Display:
+For each parking option show:
+
+PREMIUM OPTION                 SAVER OPTION
+₹45/hour                      ₹25/hour
+📍 50m from destination       📍 300m from destination
+🚗 Guaranteed reserved spot   🚗 First-come basis
+⭐ 4.8 (124 reviews)         ⭐ 4.2 (67 reviews)
+👥 "3 people viewing now"     👥 "8 people viewing now"
+
+[RESERVE NOW]                 [BOOK SAVER]
+```
+
+#### Step 3: Payment & Confirmation
+- **Cost Breakdown**: Parking fee + convenience fee + taxes
+- **Payment Options**: 
+  - Wallet balance
+  - UPI (GPay, PhonePe, Paytm)
+  - Credit/Debit cards
+- **Subscription Prompt**: "Save 20% with weekly pass!"
+
+### Active Booking Interface
+```
+Booking Active Screen:
+- Large map showing route to parking spot
+- Countdown timer: "Reserved for 14:32 minutes"
+- Parking spot details & photo
+- Navigation button: "Get Directions"
+- Contact options: 📞 Call Host | 💬 Chat
+- "I've Arrived" check-in button
+- Emergency: "Cancel Booking" (with fee policy)
+```
+
+### Wallet & Subscriptions
+```
+Wallet Screen:
+Current Balance: ₹234
+
+Add Money:
+[₹100] [₹200] [₹500] [₹1000]
+
+Subscription Plans:
+🌟 WEEKLY PASS - ₹299
+   - Unlimited parking
+   - 20% discount on premium spots
+   
+💎 MONTHLY PASS - ₹999  
+   - Unlimited parking + priority booking
+   - Free cancellations
+   
+👑 YEARLY PASS - ₹8999
+   - All benefits + premium support
+```
+
+## Vendor Interface (Space Lister)
+
+### Vendor Dashboard
+```
+Header: "Host Dashboard" with earnings summary
+
+Today's Stats:
+💰 Earnings: ₹456
+📊 Bookings: 12
+⭐ Rating: 4.6
+
+Quick Actions:
+- "List New Space"
+- "Manage Availability" 
+- "View Earnings"
+- "Update Pricing"
+```
+
+### Space Listing Flow
+```
+Step 1: Location Details
+- Pin exact location on map
+- Address verification
+- Landmark description
+
+Step 2: Space Information  
+- Number of parking slots: [1-50]
+- Vehicle types accepted: Two-wheeler/Car/Both
+- Space type: Driveway/Dedicated lot/Roadside
+- Upload 3-5 photos
+
+Step 3: Pricing & Availability
+- Set hourly rates (₹15-200 range suggested)
+- Available hours: 24/7 or custom schedule
+- Special rates for: Weekends, events, overnight
+
+Step 4: Verification
+- Upload ID proof (Aadhaar/Driving License)
+- Bank account/UPI for payouts
+- Phone verification
+```
+
+### Vendor Booking Management
+```
+Active Bookings:
+[Booking #1234]
+🚗 Rajesh K. - Maruti Swift
+⏰ 2:30 PM - 4:30 PM  
+💰 ₹90
+📞 Call | 💬 Chat | ✅ Confirm Arrival
+
+Earnings Breakdown:
+- Your share: ₹72 (80%)
+- Platform fee: ₹18 (20%)
+- Payout: Tomorrow to UPI ending **34
+```
+
+## Shared Features (Both User & Vendor)
+
+### Communication System
+- **In-App Chat**: Available only after confirmed booking
+- **Quick Call**: Direct calling with number masking
+- **Automated Updates**: SMS/Push notifications for booking status
+
+### Rating & Review System
+```
+Post-Booking Feedback:
+Rate your experience: ⭐⭐⭐⭐⭐
+
+For Users:
+- "How was the parking spot?"
+- "Was the location accurate?"  
+- "How was the host communication?"
+
+For Vendors:
+- "How was the customer?"
+- "Any issues with the vehicle?"
+- "Punctual arrival/departure?"
+```
+
+### Support & Safety
+```
+Help & Support:
+- 📞 24/7 Helpline: 1800-xxx-xxxx
+- 💬 Live Chat Support
+- 📧 Email: help@parkeasy.in
+- FAQ Section
+- Report an Issue
+
+Safety Features:
+- Emergency contact sharing
+- Real-time booking tracking
+- Verified vendor program
+- Insurance coverage info
+```
+
+## Technical Specifications
+
+### Core Technology Stack
+- **Frontend**: React Native (iOS + Android)
+- **Backend**: Node.js/Django with MongoDB/PostgreSQL
+- **Maps Integration**: Google Maps API
+- **Payment Gateway**: Razorpay/Paytm
+- **Real-time Updates**: WebSocket/Firebase
+- **Push Notifications**: FCM
+- **SMS/OTP**: Twilio/MSG91
+
+### Key Integrations Required
+1. **Google Maps API**: For location, navigation, and geocoding
+2. **Payment Gateways**: UPI, cards, wallets
+3. **SMS Service**: OTP verification
+4. **Cloud Storage**: Photo uploads
+5. **Analytics**: User behavior tracking
+6. **Push Notifications**: Booking updates
+
+### Performance Requirements
+- **App Load Time**: Under 3 seconds
+- **Map Rendering**: Real-time with smooth scrolling
+- **Offline Mode**: Basic functionality when internet is poor
+- **Multi-language**: Seamless English/Hindi switching
+- **Accessibility**: Support for screen readers
+
+## Monetization Model
+- **Commission**: 20% from vendor earnings
+- **Subscription Revenue**: Weekly/monthly/yearly passes
+- **Premium Features**: Priority booking, cancellation protection
+- **Advertisement**: Promoted parking spots for vendors
+
+## Launch Strategy
+1. **Phase 1**: Delhi NCR (Gurgaon, Noida, Delhi)
+2. **Phase 2**: Mumbai, Bangalore, Pune
+3. **Phase 3**: Tier-1 cities expansion
+4. **Partnership**: Malls, offices, hospitals, airports
+
+This comprehensive prompt covers the complete user experience for both parking seekers and space providers in a unified, intuitive app interface designed specifically for the Indian market.
+
+this is for user 
+change the name to SMARTPARK
+

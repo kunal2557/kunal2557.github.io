@@ -1,0 +1,717 @@
+ParkEasy - Parking Reservation App Development Prompt
+
+App Overview
+
+Create a comprehensive parking reservation mobile app similar to Uber's design philosophy, focused on the Indian market with ₹ INR pricing and bilingual support (English/Hindi).
+
+
+APP FLOW STRUCTURE
+
+1. MAIN STARTING PAGE (Landing Screen)
+code
+
+
+┌─────────────────────────┐
+│    🅿️ PARKEASY         │
+│                         │
+│    Find & List          │
+│    Parking Spots       │
+│    Easily              │
+│                         │
+│ ┌─────────────────────┐ │
+│ │  🚗 I NEED PARKING  │ │
+│ │     (USER LOGIN)    │ │
+│ └─────────────────────┘ │
+│                         │
+│ ┌─────────────────────┐ │
+│ │  🏢 I HAVE PARKING  │ │
+│ │   (VENDOR LOGIN)    │ │
+│ └─────────────────────┘ │
+│                         │
+│   🇮🇳 हिंदी | 🇬🇧 English │
+└─────────────────────────┘
+2. USER LOGIN FLOW
+
+A. User Login Page
+code
+
+
+┌─────────────────────────┐
+│   ← USER LOGIN          │
+│                         │
+│ 🚗 Find Your Perfect    │
+│    Parking Spot        │
+│                         │
+│ 📱 Enter Mobile Number: │
+│ ┌─────────────────────┐ │
+│ │ +91 |______________ │ │
+│ └─────────────────────┘ │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   SEND OTP          │ │
+│ └─────────────────────┘ │
+│                         │
+│ New User?               │
+│ [Register as User]      │
+│                         │
+│ Wrong choice?           │
+│ [Go to Vendor Login]    │
+└─────────────────────────┘
+B. User OTP Verification
+code
+
+
+┌─────────────────────────┐
+│   ← OTP VERIFICATION    │
+│                         │
+│ Enter OTP sent to       │
+│ +91-9876543210          │
+│                         │
+│ ┌─┬─┬─┬─┬─┬─┐          │
+│ │ │ │ │ │ │ │          │
+│ └─┴─┴─┴─┴─┴─┘          │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   VERIFY OTP        │ │
+│ └─────────────────────┘ │
+│                         │
+│ Didn't receive?         │
+│ [Resend OTP] (30s)      │
+└─────────────────────────┘
+C. User Registration (New Users)
+code
+
+
+┌─────────────────────────┐
+│   ← COMPLETE PROFILE    │
+│                         │
+│ 👤 Full Name:           │
+│ ┌─────────────────────┐ │
+│ │ Rahul Sharma        │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📧 Email (Optional):    │
+│ ┌─────────────────────┐ │
+│ │ rahul@example.com   │ │
+│ └─────────────────────┘ │
+│                         │
+│ 🚗 Primary Vehicle:     │
+│ ┌─────────────────────┐ │
+│ │ Two-Wheeler  ▼      │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📄 Vehicle Details:     │
+│ ┌─────────────────────┐ │
+│ │ DL01AB1234 (Optional)│ │
+│ └─────────────────────┘ │
+│                         │
+│ 📸 Upload RC (Optional) │
+│ [Choose File]           │
+│                         │
+│ ┌─────────────────────┐ │
+│ │  CREATE ACCOUNT     │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+3. VENDOR LOGIN FLOW
+
+A. Vendor Login Page
+code
+
+
+┌─────────────────────────┐
+│   ← VENDOR LOGIN        │
+│                         │
+│ 🏢 Start Earning from   │
+│    Your Parking Space  │
+│                         │
+│ 📱 Enter Mobile Number: │
+│ ┌─────────────────────┐ │
+│ │ +91 |______________ │ │
+│ └─────────────────────┘ │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   SEND OTP          │ │
+│ └─────────────────────┘ │
+│                         │
+│ New Vendor?             │
+│ [Register as Vendor]    │
+│                         │
+│ Wrong choice?           │
+│ [Go to User Login]      │
+└─────────────────────────┘
+B. Vendor Registration (New Vendors)
+code
+
+
+┌─────────────────────────┐
+│   ← VENDOR REGISTRATION │
+│                         │
+│ 🏢 Business Details:    │
+│ ┌─────────────────────┐ │
+│ │ Business Name       │ │
+│ └─────────────────────┘ │
+│                         │
+│ 👤 Owner Name:          │
+│ ┌─────────────────────┐ │
+│ │ Suresh Kumar        │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📧 Email:               │
+│ ┌─────────────────────┐ │
+│ │ suresh@example.com  │ │
+│ └─────────────────────┘ │
+│                         │
+│ 🆔 ID Proof:           │
+│ ┌─────────────────────┐ │
+│ │ Aadhaar Card    ▼   │ │
+│ └─────────────────────┘ │
+│                         │
+│ 🔢 ID Number:           │
+│ ┌─────────────────────┐ │
+│ │ 1234-5678-9012      │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📸 Upload ID Document   │
+│ [Choose File]           │
+│                         │
+│ [CONTINUE]              │
+└─────────────────────────┘
+C. Vendor Banking Details
+code
+
+
+┌─────────────────────────┐
+│   ← BANKING DETAILS     │
+│                         │
+│ 🏦 Bank Account Info:   │
+│                         │
+│ Account Holder Name:    │
+│ ┌─────────────────────┐ │
+│ │ Suresh Kumar        │ │
+│ └─────────────────────┘ │
+│                         │
+│ Account Number:         │
+│ ┌─────────────────────┐ │
+│ │ 1234567890123456    │ │
+│ └─────────────────────┘ │
+│                         │
+│ IFSC Code:              │
+│ ┌─────────────────────┐ │
+│ │ HDFC0001234         │ │
+│ └─────────────────────┘ │
+│                         │
+│ 💳 UPI ID (Alternative):│
+│ ┌─────────────────────┐ │
+│ │ suresh@paytm        │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📸 Upload Bank Document │
+│ [Choose File]           │
+│                         │
+│ ┌─────────────────────┐ │
+│ │  CREATE ACCOUNT     │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+USER DASHBOARD (After Login)
+
+User Home Screen - Map-First Design
+code
+
+
+┌─────────────────────────┐
+│ 📍Delhi NCR    👤[Profile]│
+│                         │
+│ Where do you want to park?│
+│ ┌─────────────────────┐ │
+│ │🔍 Search destination│ │
+│ └─────────────────────┘ │
+│ 🎤 Voice  🇮🇳हिंदी/🇬🇧English│
+│                         │
+│ ┌─────────────────────┐ │
+│ │        MAP          │ │
+│ │  🟢 Available (5+)  │ │
+│ │  🟡 Few Left (1-4)  │ │
+│ │  🔴 Full            │ │
+│ │  📍 Premium (₹45/hr)│ │
+│ │  💰 Saver (₹25/hr) │ │
+│ │                     │ │
+│ │     📍 You are here │ │
+│ └─────────────────────┘ │
+│                         │
+│ Bottom Navigation:      │
+│ [🏠Home][📖Bookings]    │
+│ [💰Wallet][👤Profile]   │
+└─────────────────────────┘
+Booking Flow
+code
+
+
+Step 1: Search Results
+┌─────────────────────────┐
+│ ← Connaught Place       │
+│                         │
+│ 📅 Today, 2:30 PM       │
+│ ⏰ Duration: 2 hours     │
+│ 🚗 Car                  │
+│ [Modify Search]         │
+│                         │
+│ 🌟 PREMIUM - ₹90        │
+│ 📍 50m away | ⭐4.8     │
+│ 👥 3 people viewing     │
+│ [RESERVE NOW]           │
+│                         │
+│ 💰 SAVER - ₹50          │
+│ 📍 300m away | ⭐4.2    │
+│ 👥 8 people viewing     │
+│ [BOOK SAVER]            │
+│                         │
+│ 🔥 SUGGESTED - ₹70      │
+│ 📍 150m away | ⭐4.6    │
+│ 👥 2 people viewing     │
+│ [BOOK NOW]              │
+└─────────────────────────┘
+Step 2: Payment
+┌─────────────────────────┐
+│ ← Payment               │
+│                         │
+│ 📍 Premium Spot - CP    │
+│ ⏰ 2:30 PM - 4:30 PM    │
+│                         │
+│ Bill Summary:           │
+│ Parking Fee:      ₹90   │
+│ Platform Fee:     ₹10   │
+│ GST:              ₹18   │
+│ ─────────────────────   │
+│ Total:           ₹118   │
+│                         │
+│ Payment Options:        │
+│ 💰 Wallet (₹234) ✓     │
+│ 📱 UPI                  │
+│ 💳 Card                 │
+│                         │
+│ 🌟 Save 20% with Weekly │
+│    Pass for ₹299!      │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   CONFIRM BOOKING   │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+Step 3: Active Booking
+┌─────────────────────────┐
+│ ← Booking #PK001234     │
+│                         │
+│ ✅ Booking Confirmed    │
+│                         │
+│ Reserved for: 14:32 mins│
+│ ⏰ 2:30 PM - 4:30 PM    │
+│                         │
+│ 📍 Parking Location:    │
+│ Connaught Place         │
+│ Near Gate 3, Slot A-15  │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   GET DIRECTIONS    │ │
+│ └─────────────────────┘ │
+│                         │
+│ Host: Rajesh Kumar      │
+│ ⭐ 4.8 rating           │
+│                         │
+│ [📞 CALL] [💬 CHAT]     │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   I'VE ARRIVED      │ │
+│ └─────────────────────┘ │
+│                         │
+│ Emergency Cancel        │
+└─────────────────────────┘
+User Wallet & Subscriptions
+code
+
+
+┌─────────────────────────┐
+│ ← My Wallet             │
+│                         │
+│ Current Balance         │
+│ ₹234.50                 │
+│                         │
+│ Quick Add:              │
+│ [₹100][₹200][₹500][₹1K] │
+│                         │
+│ Payment Methods:        │
+│ 📱 UPI - GPay           │
+│ 💳 Card ending **1234   │
+│ 🏦 Net Banking          │
+│                         │
+│ ────────────────────    │
+│                         │
+│ 🎁 SUBSCRIPTION PLANS   │
+│                         │
+│ 🌟 WEEKLY PASS - ₹299   │
+│ • Unlimited parking     │
+│ • 20% off premium spots │
+│ [CHOOSE WEEKLY]         │
+│                         │
+│ 💎 MONTHLY PASS - ₹999  │
+│ • All weekly benefits   │
+│ • Priority booking      │
+│ • Free cancellations   │
+│ [CHOOSE MONTHLY]        │
+│                         │
+│ 👑 YEARLY PASS - ₹8999  │
+│ • All benefits          │
+│ • Premium support       │
+│ [CHOOSE YEARLY]         │
+│                         │
+│ Transaction History:    │
+│ [View All Transactions] │
+└─────────────────────────┘
+VENDOR DASHBOARD (After Login)
+
+Vendor Home Dashboard
+code
+
+
+┌─────────────────────────┐
+│ Host Dashboard    👤[⚙️] │
+│                         │
+│ 📊 TODAY'S OVERVIEW     │
+│ ┌─────────────────────┐ │
+│ │ 💰 Earnings: ₹456   │ │
+│ │ 📊 Bookings: 12     │ │
+│ │ ⭐ Rating: 4.6      │ │
+│ │ 👥 Active Now: 3    │ │
+│ └─────────────────────┘ │
+│                         │
+│ 🚀 QUICK ACTIONS        │
+│ ┌─────┬─────┬─────────┐ │
+│ │LIST │MANAGE│ VIEW   │ │
+│ │SPACE│SLOTS │EARNINGS│ │
+│ └─────┴─────┴─────────┘ │
+│                         │
+│ 🔥 ACTIVE BOOKINGS      │
+│ ┌─────────────────────┐ │
+│ │ 🚗 Rahul S. (A-12)  │ │
+│ │ 2:30-4:30 PM | ₹90  │ │
+│ │ [📞][💬][✅Arrived] │ │
+│ └─────────────────────┘ │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ 🚗 Priya G. (B-05)  │ │
+│ │ 3:00-5:00 PM | ₹60  │ │
+│ │ [📞][💬][⏰Expected]│ │
+│ └─────────────────────┘ │
+│                         │
+│ Bottom Navigation:      │
+│ [🏠Home][📊Bookings]    │
+│ [💰Earnings][⚙️Settings] │
+└─────────────────────────┘
+Add New Parking Space
+code
+
+
+┌─────────────────────────┐
+│ ← List New Space        │
+│                         │
+│ Step 1: Location        │
+│                         │
+│ 📍 Pin Your Location:   │
+│ ┌─────────────────────┐ │
+│ │       MAP           │ │
+│ │                     │ │
+│ │   📍 Drag to exact  │ │
+│ │      location       │ │
+│ │                     │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📍 Address:             │
+│ ┌─────────────────────┐ │
+│ │ 123, CP Market,     │ │
+│ │ New Delhi - 110001  │ │
+│ └─────────────────────┘ │
+│                         │
+│ 🏛️ Nearby Landmark:     │
+│ ┌─────────────────────┐ │
+│ │ Near PVR Cinema     │ │
+│ └─────────────────────┘ │
+│                         │
+│ [CONTINUE TO STEP 2]    │
+└─────────────────────────┘
+Step 2: Space Details
+┌─────────────────────────┐
+│ ← Space Information     │
+│                         │
+│ 🚗 Vehicle Types:       │
+│ ☑️ Two-Wheeler (₹15/hr) │
+│ ☑️ Car (₹25/hr)         │
+│ ☐ SUV/Truck (₹40/hr)   │
+│                         │
+│ 🔢 Number of Slots:     │
+│ ┌─────────────────────┐ │
+│ │ 8 slots available   │ │
+│ └─────────────────────┘ │
+│                         │
+│ 🏠 Space Type:          │
+│ ○ Private Driveway      │
+│ ● Dedicated Parking Lot│
+│ ○ Roadside/Open Space   │
+│                         │
+│ 📸 Upload Photos (3-5): │
+│ [📷 Add Photos]         │
+│                         │
+│ 🛡️ Security Features:   │
+│ ☑️ CCTV Coverage        │
+│ ☑️ Security Guard       │
+│ ☐ Well-lit Area         │
+│                         │
+│ [CONTINUE TO PRICING]   │
+└─────────────────────────┘
+Step 3: Pricing & Availability
+┌─────────────────────────┐
+│ ← Set Your Rates        │
+│                         │
+│ 💰 Hourly Pricing:      │
+│                         │
+│ Base Rate:              │
+│ ┌─────────────────────┐ │
+│ │ ₹ 25 /hour          │ │
+│ └─────────────────────┘ │
+│                         │
+│ Peak Hours (6-10 PM):   │
+│ ┌─────────────────────┐ │
+│ │ ₹ 35 /hour (40% ⬆)  │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📅 Available Hours:     │
+│ Monday: [6AM - 11PM]    │
+│ Tuesday: [6AM - 11PM]   │
+│ [Set Custom Schedule]   │
+│                         │
+│ 🎯 Special Rates:       │
+│ Weekend: +20%           │
+│ Overnight: -30%         │
+│ Events: +50%            │
+│                         │
+│ 💡 Suggested Rate: ₹28  │
+│ (Based on area average) │
+│                         │
+│ [PUBLISH SPACE]         │
+└─────────────────────────┘
+Vendor Earnings Dashboard
+code
+
+
+┌─────────────────────────┐
+│ ← Earnings Dashboard    │
+│                         │
+│ 📊 EARNINGS OVERVIEW    │
+│                         │
+│ This Month:             │
+│ 💰 Total: ₹15,680       │
+│ 📈 Growth: +23%         │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ Today:        ₹456  │ │
+│ │ Yesterday:    ₹523  │ │
+│ │ This Week:   ₹3,240 │ │
+│ │ Last Week:   ₹2,890 │ │
+│ └─────────────────────┘ │
+│                         │
+│ 💸 PAYOUT DETAILS       │
+│ ┌─────────────────────┐ │
+│ │ Your Share:   ₹12,544│ │
+│ │ Platform Fee: ₹3,136 │ │
+│ │ (20% commission)    │ │
+│ │                     │ │
+│ │ Next Payout:        │ │
+│ │ Tomorrow to UPI**34 │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📈 PERFORMANCE METRICS  │
+│ Occupancy Rate: 78%     │
+│ Avg Rating: 4.6/5       │
+│ Repeat Customers: 45%   │
+│                         │
+│ [📊 View Analytics]     │
+│ [💳 Payout History]     │
+│ [📧 Download Report]    │
+└─────────────────────────┘
+Vendor Booking Management
+code
+
+
+┌─────────────────────────┐
+│ ← Manage Bookings       │
+│                         │
+│ 🔄 BOOKING ACTIONS      │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ 🚗 Rahul Sharma     │ │
+│ │ Blue Honda City     │ │
+│ │ Slot A-12 | 2:30-5:30│ │
+│ │ Status: ✅ Arrived  │ │
+│ │                     │ │
+│ │ Actions:            │ │
+│ │ [⏰ Extend][💬 Chat]│ │
+│ │ [🚫 End Early]      │ │
+│ └─────────────────────┘ │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ 🚗 Priya Gupta     │ │
+│ │ Red Maruti Swift    │ │
+│ │ Slot B-05 | 3:00-5:00│ │
+│ │ Status: ⏰ Expected │ │
+│ │                     │ │
+│ │ Actions:            │ │
+│ │ [📞 Call][💬 Chat] │ │
+│ │ [❌ Mark No-show]   │ │
+│ └─────────────────────┘ │
+│                         │
+│ 📊 TODAY'S STATS:       │
+│ • Total Bookings: 12    │
+│ • Current Active: 3     │
+│ • No-shows: 0           │
+│ • Revenue: ₹456         │
+│                         │
+│ 🤖 AUTO-MANAGEMENT:     │
+│ ☑️ Auto-confirm bookings│
+│ ☑️ Send reminders       │
+│ ☑️ Handle no-shows      │
+│ ☐ Dynamic pricing       │
+└─────────────────────────┘
+SHARED FEATURES
+
+Communication System
+code
+
+
+┌─────────────────────────┐
+│ ← Chat with Host/User   │
+│                         │
+│ 🚗 Booking #PK001234    │
+│ Rahul ↔ Suresh         │
+│                         │
+│ Today, 2:30 PM          │
+│ Host: Welcome! Slot A-12│
+│ near the main gate      │
+│                         │
+│ User: Running 10 min late│
+│                         │
+│ Host: No problem! I'll  │
+│ keep it reserved        │
+│                         │
+│ Quick Replies:          │
+│ [👍 Thanks][🚗 Arrived]  │
+│ [❓ Help][📍 Location]   │
+│                         │
+│ ┌─────────────────────┐ │
+│ │ Type message...     │ │
+│ └─────────────────────┘ │
+│ [📎][📷][🎤] [SEND]    │
+│                         │
+│ [📞 CALL NOW]           │
+└─────────────────────────┘
+Rating & Review System
+code
+
+
+┌─────────────────────────┐
+│ ← Rate Your Experience  │
+│                         │
+│ How was your parking?   │
+│                         │
+│ ⭐⭐⭐⭐⭐              │
+│                         │
+│ Quick Feedback:         │
+│ [😊 Great][😐 OK][😞 Poor]│
+│                         │
+│ ✍️ Write a review:      │
+│ ┌─────────────────────┐ │
+│ │ Excellent location, │ │
+│ │ safe and clean      │ │
+│ │ parking. Host was   │ │
+│ │ very helpful!       │ │
+│ └─────────────────────┘ │
+│                         │
+│ Rate specific aspects:   │
+│ Location: ⭐⭐⭐⭐⭐    │
+│ Safety: ⭐⭐⭐⭐⭐      │
+│ Host: ⭐⭐⭐⭐⭐        │
+│ Value: ⭐⭐⭐⭐⭐       │
+│                         │
+│ ┌─────────────────────┐ │
+│ │   SUBMIT REVIEW     │ │
+│ └─────────────────────┘ │
+│                         │
+│ [Skip for now]          │
+└─────────────────────────┘
+Support & Help
+code
+
+
+┌─────────────────────────┐
+│ ← Help & Support        │
+│                         │
+│ 🆘 NEED IMMEDIATE HELP? │
+│ ┌─────────────────────┐ │
+│ │  📞 CALL 1800-xxx   │ │
+│ │     24/7 Support    │ │
+│ └─────────────────────┘ │
+│                         │
+│ 💬 CHAT SUPPORT         │
+│ Average wait: 2 minutes │
+│ [Start Live Chat]       │
+│                         │
+│ 📚 COMMON QUESTIONS     │
+│ • How to cancel booking?│
+│ • Payment not working?  │
+│ • Can't find my slot?   │
+│ • How to extend parking?│
+│ [View All FAQs]         │
+│                         │
+│ 📧 EMAIL SUPPORT        │
+│ help@parkeasy.in        │
+│                         │
+│ 🚨 REPORT PROBLEM       │
+│ • Wrong location        │
+│ • Safety concerns       │
+│ • Host not responding   │
+│ • App technical issue   │
+│                         │
+│ 🌟 SUGGEST IMPROVEMENT  │
+│ Help us make ParkEasy   │
+│ better for everyone!    │
+│ [Send Suggestion]       │
+└─────────────────────────┘
+TECHNICAL IMPLEMENTATION
+
+Core Technology Requirements
+
+Frontend: React Native (iOS + Android)
+Backend: Node.js with Express/Django
+Database: MongoDB/PostgreSQL
+Real-time: Socket.io/Firebase
+Maps: Google Maps API
+Payments: Razorpay Gateway
+SMS/OTP: Twilio/MSG91
+Push Notifications: FCM
+File Storage: AWS S3/Firebase Storage
+
+Key Features Implementation
+
+Separate Login Systems: Distinct authentication flows for users and vendors
+Role-Based Access: Different interfaces and permissions
+Real-time Updates: Live availability, booking status
+Payment Integration: UPI, cards, wallets, subscriptions
+Maps Integration: Location search, navigation, geocoding
+Communication: In-app chat, calling, notifications
+Rating System: Bidirectional feedback mechanism
+Offline Support: Basic functionality without internet
+
+Performance Optimizations
+
+App load time: Under 3 seconds
+Real-time map updates with smooth scrolling
+Image compression and lazy loading
+Offline data caching
+Battery usage optimization
+This comprehensive prompt ensures a complete separation between user and vendor experiences while maintaining Uber-like simplicity and user-friendliness throughout both interfaces.
