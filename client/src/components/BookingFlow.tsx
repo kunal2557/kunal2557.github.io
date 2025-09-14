@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -17,73 +21,127 @@ import {
   Check,
   Navigation,
   Phone,
-  MessageCircle
+  MessageCircle,
+  Loader2,
+  Plus,
+  Minus
 } from "lucide-react";
+import type { ParkingSpot } from "@shared/schema";
 
 interface BookingFlowProps {
   onBack: () => void;
   onComplete: () => void;
+  spotId?: string;
+  userId?: string;
 }
 
-export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
+export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo-user" }: BookingFlowProps) {
   const [step, setStep] = useState<'search' | 'payment' | 'confirmed' | 'active'>('search');
-  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+  const [selectedSpot, setSelectedSpot] = useState<string | null>(spotId || null);
   const [paymentMethod, setPaymentMethod] = useState('wallet');
+  const [duration, setDuration] = useState(2); // hours
+  const [startTime, setStartTime] = useState<Date>(new Date());
+  const { toast } = useToast();
 
-  // Mock booking data //todo: remove mock functionality
+  // Fetch parking spots from API
+  const { data: spots = [], isLoading: spotsLoading } = useQuery<ParkingSpot[]>({
+    queryKey: ['/api/spots'],
+    select: (data) => data || []
+  });
+
+  // Fetch user wallet for payment validation
+  const { data: wallet } = useQuery<{balance: number}>({
+    queryKey: ['/api/wallet', userId],
+    enabled: !!userId
+  });
+
+  // Create booking mutation
+  const createBookingMutation = useMutation({
+    mutationFn: async (bookingData: any) => {
+      const response = await apiRequest('POST', '/api/bookings', bookingData);
+      return response.json();
+    },
+    onSuccess: (booking) => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings/user', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/spots'] });
+      
+      setStep('confirmed');
+      toast({
+        title: "Booking Confirmed!",
+        description: `Your parking spot has been reserved for ${duration} hours.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Calculate end time based on start time and duration
+  const endTime = new Date(startTime);
+  endTime.setHours(endTime.getHours() + duration);
+
+  // Search data for display
   const searchData = {
-    destination: "Connaught Place",
-    date: "Today",
-    time: "2:30 PM",
-    duration: "2 hours",
+    destination: selectedSpot ? spots.find(s => s.id === selectedSpot)?.name || "Selected Location" : "Choose Location",
+    date: startTime.toDateString() === new Date().toDateString() ? "Today" : startTime.toLocaleDateString(),
+    time: startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    duration: `${duration} hours`,
     vehicle: "Car"
   };
 
-  const spots = [
-    {
-      id: 'premium',
-      type: 'PREMIUM',
-      price: 90,
-      distance: '50m away',
-      rating: 4.8,
-      reviews: 124,
-      viewers: 3,
-      features: ['Guaranteed reserved spot', 'CCTV coverage', 'Covered parking']
-    },
-    {
-      id: 'saver', 
-      type: 'SAVER',
-      price: 50,
-      distance: '300m away',
-      rating: 4.2,
-      reviews: 67,
-      viewers: 8,
-      features: ['First-come basis', 'Open parking', 'Security guard']
-    },
-    {
-      id: 'suggested',
-      type: 'SUGGESTED', 
-      price: 70,
-      distance: '150m away',
-      rating: 4.6,
-      reviews: 89,
-      viewers: 2,
-      features: ['Balanced choice', 'Partially covered', 'Easy access']
-    }
-  ];
-
   const getSpotColor = (type: string) => {
-    switch (type) {
-      case 'PREMIUM': return 'bg-parking-premium';
-      case 'SAVER': return 'bg-parking-saver';
+    switch (type?.toLowerCase()) {
+      case 'premium': return 'bg-parking-premium';
+      case 'saver': return 'bg-parking-saver';
+      case 'suggested': return 'bg-primary';
       default: return 'bg-primary';
     }
   };
 
   const calculateTotal = (basePrice: number) => {
+    const totalPrice = basePrice * duration; // Price per hour * duration
     const platformFee = 10;
-    const gst = Math.round((basePrice + platformFee) * 0.18);
-    return basePrice + platformFee + gst;
+    const gst = Math.round((totalPrice + platformFee) * 0.18);
+    return totalPrice + platformFee + gst;
+  };
+
+  // Handle booking confirmation
+  const handleConfirmBooking = () => {
+    if (!selectedSpot || !userId) return;
+    
+    const selectedSpotData = spots.find(s => s.id === selectedSpot);
+    if (!selectedSpotData) return;
+    
+    const totalAmount = calculateTotal(selectedSpotData.pricePerHour);
+    
+    // Check wallet balance only if wallet payment is selected
+    if (paymentMethod === 'wallet' && (!wallet || wallet.balance < totalAmount)) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Please add money to your wallet to complete this booking.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const bookingData = {
+      userId,
+      spotId: selectedSpot,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      duration,
+      amount: totalAmount,
+      status: 'confirmed',
+      paymentMethod
+    };
+    
+    createBookingMutation.mutate(bookingData);
   };
 
   if (step === 'search') {
@@ -112,12 +170,58 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
         </div>
 
         <div className="p-4">
-          <Button variant="outline" className="w-full mb-4" data-testid="button-modify-search">
-            Modify Search
-          </Button>
+          {/* Time and Duration Selection */}
+          <Card className="mb-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Booking Time</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Start Time</label>
+                  <Input
+                    type="time"
+                    value={startTime.toTimeString().slice(0, 5)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const [hours, minutes] = e.target.value.split(':');
+                      const newTime = new Date();
+                      newTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                      setStartTime(newTime);
+                    }}
+                    data-testid="input-start-time"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Duration</label>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setDuration(Math.max(1, duration - 1))}
+                      disabled={duration <= 1}
+                      data-testid="button-decrease-duration"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="px-4 py-2 border rounded text-center min-w-[60px]">
+                      {duration}h
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setDuration(duration + 1)}
+                      data-testid="button-increase-duration"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="space-y-4">
-            {spots.map((spot) => (
+            {spots.map((spot: ParkingSpot) => (
               <Card 
                 key={spot.id}
                 className={`hover-elevate cursor-pointer transition-all duration-200 ${
@@ -131,12 +235,12 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Badge 
-                          className={`${getSpotColor(spot.type)} text-white`}
+                          className={`${getSpotColor(spot.spotType)} text-white`}
                           data-testid={`badge-type-${spot.id}`}
                         >
-                          {spot.type}
+                          {spot.spotType.toUpperCase()}
                         </Badge>
-                        {spot.type === 'SUGGESTED' && (
+                        {spot.spotType === 'suggested' && (
                           <Badge variant="secondary" className="bg-parking-booking text-white">
                             <Star className="h-3 w-3 mr-1" />
                             RECOMMENDED
@@ -145,7 +249,7 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                       </div>
                       <p className="text-sm text-muted-foreground flex items-center space-x-1" data-testid={`text-distance-${spot.id}`}>
                         <MapPin className="h-3 w-3" />
-                        <span>{spot.distance}</span>
+                        <span>{spot.address}</span>
                       </p>
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="flex items-center space-x-1">
@@ -163,7 +267,7 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                       <div className="flex items-center space-x-1 mb-2">
                         <IndianRupee className="h-5 w-5" />
                         <span className="text-2xl font-bold" data-testid={`text-price-${spot.id}`}>
-                          {spot.price}
+                          {spot.pricePerHour}
                         </span>
                       </div>
                       <Button
@@ -172,16 +276,16 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                           setSelectedSpot(spot.id);
                           setStep('payment');
                         }}
-                        className={`${getSpotColor(spot.type)} text-white hover:opacity-90`}
+                        className={`${getSpotColor(spot.spotType)} text-white hover:opacity-90`}
                         data-testid={`button-book-${spot.id}`}
                       >
-                        {spot.type === 'PREMIUM' ? 'RESERVE NOW' :
-                         spot.type === 'SAVER' ? 'BOOK SAVER' : 'BOOK NOW'}
+                        {spot.spotType === 'premium' ? 'RESERVE NOW' :
+                         spot.spotType === 'saver' ? 'BOOK SAVER' : 'BOOK NOW'}
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    {spot.features.map((feature, index) => (
+                    {spot.amenities?.map((feature: string, index: number) => (
                       <p key={index} className="text-xs text-muted-foreground">
                         • {feature}
                       </p>
@@ -200,7 +304,7 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
     const selectedSpotData = spots.find(s => s.id === selectedSpot);
     if (!selectedSpotData) return null;
 
-    const basePrice = selectedSpotData.price;
+    const basePrice = selectedSpotData.pricePerHour * duration;
     const platformFee = 10;
     const gst = Math.round((basePrice + platformFee) * 0.18);
     const total = basePrice + platformFee + gst;
@@ -235,7 +339,7 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="font-medium" data-testid="text-spot-name">
-                    {selectedSpotData.type} Spot - CP
+                    {selectedSpotData.spotType.toUpperCase()} Spot - {selectedSpotData.name}
                   </p>
                   <p className="text-sm text-muted-foreground" data-testid="text-booking-time">
                     {searchData.time} - 4:30 PM
@@ -289,7 +393,7 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                 <Wallet className="h-5 w-5" />
                 <div className="flex-1">
                   <p className="font-medium">Wallet</p>
-                  <p className="text-sm text-muted-foreground">Balance: ₹234</p>
+                  <p className="text-sm text-muted-foreground">Balance: ₹{wallet?.balance || 0}</p>
                 </div>
                 {paymentMethod === 'wallet' && <Check className="h-5 w-5 text-primary" />}
               </div>
@@ -337,11 +441,19 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
           </Card>
 
           <Button
-            onClick={() => setStep('confirmed')}
+            onClick={handleConfirmBooking}
+            disabled={createBookingMutation.isPending}
             className="w-full h-12 text-lg"
             data-testid="button-confirm-booking"
           >
-            Confirm Booking
+            {createBookingMutation.isPending ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'Confirm Booking'
+            )}
           </Button>
         </div>
       </div>

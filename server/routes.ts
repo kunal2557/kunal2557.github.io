@@ -133,8 +133,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Parking spot not available" });
       }
 
-      // Calculate server-side booking amount (security: don't trust client)
-      const calculatedAmount = spot.pricePerHour * validatedData.duration;
+      // Calculate server-side booking amount with fees (security: don't trust client)
+      const baseAmount = spot.pricePerHour * validatedData.duration;
+      const platformFee = 10;
+      const gst = Math.round((baseAmount + platformFee) * 0.18);
+      const calculatedAmount = baseAmount + platformFee + gst;
       
       // Validate that client-provided amount matches server calculation
       if (validatedData.amount !== calculatedAmount) {
@@ -145,21 +148,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if user has sufficient wallet balance
-      const wallet = await storage.getUserWallet(validatedData.userId);
-      if (!wallet || wallet.balance < calculatedAmount) {
-        return res.status(400).json({ error: "Insufficient wallet balance" });
+      // Only check wallet balance if payment method is wallet
+      let wallet;
+      if (validatedData.paymentMethod === 'wallet') {
+        wallet = await storage.getUserWallet(validatedData.userId);
+        if (!wallet || wallet.balance < calculatedAmount) {
+          return res.status(400).json({ error: "Insufficient wallet balance" });
+        }
       }
 
+      // Get or create a default vehicle for the user (demo purposes)
+      let userVehicles = await storage.getVehiclesByUserId(validatedData.userId);
+      let vehicleId: string;
+      
+      if (userVehicles.length === 0) {
+        // Create a default vehicle for demo purposes
+        const defaultVehicle = await storage.createVehicle({
+          userId: validatedData.userId,
+          vehicleType: 'Car',
+          vehicleNumber: 'DEMO-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+          rcUploaded: false
+        });
+        vehicleId = defaultVehicle.id;
+      } else {
+        vehicleId = userVehicles[0].id;
+      }
+
+      // Create booking atomically with payment deduction
       const booking = await storage.createBooking({
         ...validatedData,
-        amount: calculatedAmount // Use server-calculated amount, not client-provided
+        vehicleId, // Use the vehicleId we found/created
+        amount: calculatedAmount, // Use server-calculated amount, not client-provided
+        startTime: new Date(validatedData.startTime), // Convert string to Date
+        endTime: new Date(validatedData.endTime) // Convert string to Date
       });
       
       // Update spot availability
       await storage.updateParkingSpot(validatedData.spotId, {
         availableSpots: spot.availableSpots - 1
       });
+
+      // Only debit wallet and create transaction if payment method is wallet
+      if (validatedData.paymentMethod === 'wallet' && wallet) {
+        // Debit wallet and create transaction record
+        await storage.createWalletTransaction({
+          userId: validatedData.userId,
+          type: 'debit',
+          amount: calculatedAmount,
+          description: `Parking booking at ${spot.name}`,
+          status: 'completed',
+          relatedBookingId: booking.id,
+          paymentMethod: 'wallet'
+        });
+
+        // Update wallet balance
+        await storage.updateWalletBalance(validatedData.userId, wallet.balance - calculatedAmount);
+      }
 
       res.status(201).json(booking);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,13 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
     email: '',
     vehicleType: 'Car'
   });
+
+  // Use useEffect to handle navigation to avoid setState during render
+  useEffect(() => {
+    if (step === 'comprehensive-registration') {
+      onLogin(); // This will trigger the comprehensive registration in App.tsx
+    }
+  }, [step, onLogin]);
 
   const isUser = mode === 'user';
 
@@ -191,8 +198,6 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
   }
 
   if (step === 'comprehensive-registration') {
-    // Navigate to comprehensive registration flow
-    onLogin(); // This will trigger the comprehensive registration in App.tsx
     return null;
   }
 
