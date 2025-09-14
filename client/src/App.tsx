@@ -16,6 +16,8 @@ import BottomNavigation from "@/components/BottomNavigation";
 import ProfileScreen from "@/components/ProfileScreen";
 import UserRegistration from "@/components/UserRegistration";
 import VendorRegistration from "@/components/VendorRegistration";
+import BookingsScreen from "@/components/BookingsScreen";
+import WalletScreen from "@/components/WalletScreen";
 
 type AppState = 'landing' | 'auth' | 'userDashboard' | 'vendorDashboard' | 'booking' | 'userRegistration' | 'vendorRegistration';
 type UserMode = 'user' | 'vendor';
@@ -59,6 +61,11 @@ function SmartParkApp() {
 
   const handleShowBooking = () => {
     setAppState('booking');
+  };
+
+  const handleShowProfile = () => {
+    setActiveTab('profile');
+    setShowProfile(true);
   };
 
   const handleBackToLanding = () => {
@@ -109,10 +116,15 @@ function SmartParkApp() {
                 onSwitchToVendor={handleSwitchMode}
                 onLogout={handleLogout}
               />
+            ) : activeTab === 'bookings' ? (
+              <BookingsScreen />
+            ) : activeTab === 'wallet' ? (
+              <WalletScreen />
             ) : (
               <UserDashboard 
                 onShowBooking={handleShowBooking}
                 onSwitchToVendor={handleSwitchMode}
+                onShowProfile={handleShowProfile}
               />
             )}
             <BottomNavigation 

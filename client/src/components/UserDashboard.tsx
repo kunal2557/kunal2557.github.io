@@ -21,16 +21,11 @@ import {
 interface UserDashboardProps {
   onShowBooking: () => void;
   onSwitchToVendor: () => void;
+  onShowProfile: () => void;
 }
 
-export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserDashboardProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [language, setLanguage] = useState<'en' | 'hi'>('en');
-  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
-  const [spotsExpanded, setSpotsExpanded] = useState(true);
-
-  // Mock parking spots data //todo: remove mock functionality
-  const parkingSpots = [
+// Mock parking spots data //todo: remove mock functionality
+const parkingSpots = [
     {
       id: '1',
       name: 'Premium Spot - CP',
@@ -65,6 +60,28 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
       availability: 'available'
     }
   ];
+
+export default function UserDashboard({ onShowBooking, onSwitchToVendor, onShowProfile }: UserDashboardProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+  const [spotsExpanded, setSpotsExpanded] = useState(true);
+  const [filteredSpots, setFilteredSpots] = useState(parkingSpots);
+
+  // Search functionality
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredSpots(parkingSpots);
+    } else {
+      const filtered = parkingSpots.filter(spot => 
+        spot.name.toLowerCase().includes(query.toLowerCase()) ||
+        spot.distance.toLowerCase().includes(query.toLowerCase()) ||
+        spot.type.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredSpots(filtered);
+    }
+  };
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'hi' : 'en');
@@ -124,20 +141,54 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MapPin className="h-5 w-5" />
-            <span className="font-medium" data-testid="text-location">{currentContent.location}</span>
-          </div>
-          <div className="flex items-center space-x-2">
+        <div className="space-y-2">
+          {/* Greeting Row */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold" data-testid="text-greeting">
+                {language === 'en' ? 'Hello, Rahul!' : 'नमस्ते, राहुल!'}
+              </h1>
+              <p className="text-sm opacity-80" data-testid="text-time-greeting">
+                {new Date().getHours() < 12 
+                  ? (language === 'en' ? 'Good Morning' : 'सुप्रभात') 
+                  : new Date().getHours() < 17 
+                  ? (language === 'en' ? 'Good Afternoon' : 'शुभ दोपहर') 
+                  : (language === 'en' ? 'Good Evening' : 'शुभ संध्या')}
+              </p>
+            </div>
             <Button
               variant="ghost"
               size="icon"
+              onClick={onShowProfile}
               className="text-primary-foreground hover:bg-primary-foreground/10"
               data-testid="button-profile"
             >
               <User className="h-5 w-5" />
             </Button>
+          </div>
+          
+          {/* Location Row with Cities */}
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4" />
+              <span className="font-medium" data-testid="text-location">{currentContent.location}</span>
+            </div>
+            
+            {/* City Columns */}
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="bg-primary-foreground/10 rounded-lg p-2 text-center">
+                <div className="font-medium">Delhi</div>
+                <div className="text-xs opacity-80">234 spots</div>
+              </div>
+              <div className="bg-primary-foreground/10 rounded-lg p-2 text-center">
+                <div className="font-medium">Gurgaon</div>
+                <div className="text-xs opacity-80">156 spots</div>
+              </div>
+              <div className="bg-primary-foreground/10 rounded-lg p-2 text-center">
+                <div className="font-medium">Noida</div>
+                <div className="text-xs opacity-80">89 spots</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -150,7 +201,7 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
             <Input
               placeholder={currentContent.searchPlaceholder}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 h-12"
               data-testid="input-search"
             />
@@ -173,18 +224,40 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
         </div>
       </div>
 
-      {/* Map Section */}
+      {/* Interactive Map Section */}
       <div className="h-64 bg-muted relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-primary/20" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center space-y-2">
-            <div className="bg-card p-4 rounded-lg shadow-sm">
-              <p className="font-medium" data-testid="text-map-placeholder">Interactive Map</p>
-              <p className="text-sm text-muted-foreground">
-                Shows parking spots with availability
-              </p>
-            </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-green-500/20" />
+        
+        {/* Live Location Indicator */}
+        <div className="absolute top-4 right-4 bg-card p-2 rounded-lg shadow-sm">
+          <div className="flex items-center space-x-2 text-sm">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="font-medium text-green-600">Live</span>
           </div>
+        </div>
+
+        {/* User Location */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="relative">
+            <div className="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg" />
+            <div className="absolute -inset-3 bg-blue-500/20 rounded-full animate-ping" />
+          </div>
+        </div>
+
+        {/* Nearby Parking Spots */}
+        <div className="absolute top-8 left-8">
+          <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm" />
+          <div className="bg-card px-2 py-1 rounded text-xs font-medium mt-1 shadow-sm">5 spots</div>
+        </div>
+        
+        <div className="absolute bottom-12 right-12">
+          <div className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-white shadow-sm" />
+          <div className="bg-card px-2 py-1 rounded text-xs font-medium mt-1 shadow-sm">2 spots</div>
+        </div>
+
+        <div className="absolute top-16 right-20">
+          <div className="w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+          <div className="bg-card px-2 py-1 rounded text-xs font-medium mt-1 shadow-sm">Full</div>
         </div>
 
         {/* Map Legend */}
@@ -223,7 +296,7 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
                 Available Spots
               </h3>
               <Badge variant="secondary" data-testid="badge-spots-count">
-                {parkingSpots.length} spots found
+                {filteredSpots.length} spots found
               </Badge>
             </div>
             <div className="flex items-center space-x-2">
@@ -242,11 +315,11 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
         {/* Collapsible Content */}
         <div 
           className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            spotsExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+            spotsExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
           <div className="p-4 pt-0 space-y-3">
-            {parkingSpots.map((spot) => (
+            {filteredSpots.map((spot) => (
               <Card 
                 key={spot.id} 
                 className={`hover-elevate cursor-pointer transition-all duration-200 ${
