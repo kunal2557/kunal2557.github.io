@@ -13,7 +13,9 @@ import {
   Star,
   Users,
   Clock,
-  IndianRupee
+  IndianRupee,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 
 interface UserDashboardProps {
@@ -25,6 +27,7 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
   const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+  const [spotsExpanded, setSpotsExpanded] = useState(true);
 
   // Mock parking spots data //todo: remove mock functionality
   const parkingSpots = [
@@ -129,15 +132,6 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={onSwitchToVendor}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-              data-testid="button-switch-vendor"
-            >
-              Switch to Vendor
-            </Button>
-            <Button
-              variant="ghost"
               size="icon"
               className="text-primary-foreground hover:bg-primary-foreground/10"
               data-testid="button-profile"
@@ -173,7 +167,7 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
               data-testid="button-language"
             >
               <Globe className="h-4 w-4 mr-1" />
-              {language === 'en' ? '🇮🇳हिंदी' : '🇬🇧English'}
+{language === 'en' ? 'हिंदी' : 'English'}
             </Button>
           </div>
         </div>
@@ -215,99 +209,128 @@ export default function UserDashboard({ onShowBooking, onSwitchToVendor }: UserD
         </div>
       </div>
 
-      {/* Parking Spots List */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg" data-testid="text-spots-header">
-            Available Spots
-          </h3>
-          <Badge variant="secondary" data-testid="badge-spots-count">
-            {parkingSpots.length} spots found
-          </Badge>
+      {/* Parking Spots List - Sliding Section */}
+      <div className="bg-background">
+        {/* Sliding Header */}
+        <div 
+          className="p-4 border-t bg-card cursor-pointer hover-elevate"
+          onClick={() => setSpotsExpanded(!spotsExpanded)}
+          data-testid="button-toggle-spots"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <h3 className="font-semibold text-lg" data-testid="text-spots-header">
+                Available Spots
+              </h3>
+              <Badge variant="secondary" data-testid="badge-spots-count">
+                {parkingSpots.length} spots found
+              </Badge>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">
+                {spotsExpanded ? 'Collapse' : 'Expand'}
+              </span>
+              {spotsExpanded ? (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+              )}
+            </div>
+          </div>
         </div>
 
-        {parkingSpots.map((spot) => (
-          <Card 
-            key={spot.id} 
-            className={`hover-elevate cursor-pointer transition-all duration-200 ${
-              selectedSpot === spot.id ? 'ring-2 ring-primary' : ''
-            }`}
-            onClick={() => setSelectedSpot(spot.id)}
-            data-testid={`card-spot-${spot.id}`}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Badge 
-                      className={`${getSpotColor(spot.type)} text-white`}
-                      data-testid={`badge-type-${spot.type}`}
-                    >
-                      {spot.type === 'premium' ? currentContent.premium : 
-                       spot.type === 'saver' ? currentContent.saver : 'Suggested'}
-                    </Badge>
-                    <div className="flex items-center space-x-1">
-                      <div className={`w-2 h-2 rounded-full ${
-                        spot.availability === 'available' ? 'bg-parking-available' :
-                        spot.availability === 'limited' ? 'bg-parking-limited' : 
-                        'bg-parking-unavailable'
-                      }`} />
-                      <span className={`text-sm ${getAvailabilityColor(spot.availability)}`}>
-                        {spot.availability}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium" data-testid={`text-spot-name-${spot.id}`}>
-                      {spot.name}
-                    </h4>
-                    <p className="text-sm text-muted-foreground" data-testid={`text-spot-distance-${spot.id}`}>
-                      📍 {spot.distance}
-                    </p>
-                  </div>
+        {/* Collapsible Content */}
+        <div 
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            spotsExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="p-4 pt-0 space-y-3">
+            {parkingSpots.map((spot) => (
+              <Card 
+                key={spot.id} 
+                className={`hover-elevate cursor-pointer transition-all duration-200 ${
+                  selectedSpot === spot.id ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => setSelectedSpot(spot.id)}
+                data-testid={`card-spot-${spot.id}`}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          className={`${getSpotColor(spot.type)} text-white`}
+                          data-testid={`badge-type-${spot.type}`}
+                        >
+                          {spot.type === 'premium' ? currentContent.premium : 
+                           spot.type === 'saver' ? currentContent.saver : 'Suggested'}
+                        </Badge>
+                        <div className="flex items-center space-x-1">
+                          <div className={`w-2 h-2 rounded-full ${
+                            spot.availability === 'available' ? 'bg-parking-available' :
+                            spot.availability === 'limited' ? 'bg-parking-limited' : 
+                            'bg-parking-unavailable'
+                          }`} />
+                          <span className={`text-sm ${getAvailabilityColor(spot.availability)}`}>
+                            {spot.availability}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium" data-testid={`text-spot-name-${spot.id}`}>
+                          {spot.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground flex items-center space-x-1" data-testid={`text-spot-distance-${spot.id}`}>
+                          <MapPin className="h-3 w-3" />
+                          <span>{spot.distance}</span>
+                        </p>
+                      </div>
 
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span data-testid={`text-spot-rating-${spot.id}`}>{spot.rating}</span>
-                      <span className="text-muted-foreground">({spot.reviews})</span>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span data-testid={`text-spot-rating-${spot.id}`}>{spot.rating}</span>
+                          <span className="text-muted-foreground">({spot.reviews})</span>
+                        </div>
+                        <div className="flex items-center space-x-1 text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span data-testid={`text-spot-viewers-${spot.id}`}>
+                            {spot.viewers} {currentContent.viewingNow}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-1 text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span data-testid={`text-spot-viewers-${spot.id}`}>
-                        {spot.viewers} {currentContent.viewingNow}
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="text-right space-y-2">
-                  <div className="flex items-center space-x-1">
-                    <IndianRupee className="h-4 w-4" />
-                    <span className="text-xl font-bold" data-testid={`text-spot-price-${spot.id}`}>
-                      {spot.price}
-                    </span>
-                    <span className="text-sm text-muted-foreground">/hour</span>
+                    <div className="text-right space-y-2">
+                      <div className="flex items-center space-x-1">
+                        <IndianRupee className="h-4 w-4" />
+                        <span className="text-xl font-bold" data-testid={`text-spot-price-${spot.id}`}>
+                          {spot.price}
+                        </span>
+                        <span className="text-sm text-muted-foreground">/hour</span>
+                      </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShowBooking();
+                        }}
+                        size="sm"
+                        className={`${getSpotColor(spot.type)} text-white hover:opacity-90`}
+                        data-testid={`button-book-${spot.id}`}
+                      >
+                        {spot.type === 'premium' ? currentContent.reserveNow :
+                         spot.type === 'saver' ? currentContent.bookSaver :
+                         currentContent.bookNow}
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onShowBooking();
-                    }}
-                    size="sm"
-                    className={`${getSpotColor(spot.type)} text-white hover:opacity-90`}
-                    data-testid={`button-book-${spot.id}`}
-                  >
-                    {spot.type === 'premium' ? currentContent.reserveNow :
-                     spot.type === 'saver' ? currentContent.bookSaver :
-                     currentContent.bookNow}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}

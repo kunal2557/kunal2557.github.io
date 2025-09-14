@@ -13,6 +13,7 @@ import {
   Calendar,
   MapPin,
   Car,
+  Clock,
   Bike,
   Truck,
   Users,
@@ -296,11 +297,13 @@ export default function VendorDashboard({ onSwitchToUser, onBack }: VendorDashbo
                     <p className="font-medium" data-testid={`text-booking-id-${booking.id}`}>
                       Booking #{booking.id}
                     </p>
-                    <p className="text-sm" data-testid={`text-customer-${booking.id}`}>
-                      🚗 {booking.customerName} - {booking.vehicle}
+                    <p className="text-sm flex items-center space-x-1" data-testid={`text-customer-${booking.id}`}>
+                      <Car className="h-3 w-3" />
+                      <span>{booking.customerName} - {booking.vehicle}</span>
                     </p>
-                    <p className="text-sm text-muted-foreground" data-testid={`text-booking-time-${booking.id}`}>
-                      ⏰ {booking.time}
+                    <p className="text-sm text-muted-foreground flex items-center space-x-1" data-testid={`text-booking-time-${booking.id}`}>
+                      <Clock className="h-3 w-3" />
+                      <span>{booking.time}</span>
                     </p>
                   </div>
                   <div className="text-right space-y-1">

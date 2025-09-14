@@ -138,12 +138,14 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
                         </Badge>
                         {spot.type === 'SUGGESTED' && (
                           <Badge variant="secondary" className="bg-parking-booking text-white">
-                            🔥 RECOMMENDED
+                            <Star className="h-3 w-3 mr-1" />
+                            RECOMMENDED
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground" data-testid={`text-distance-${spot.id}`}>
-                        📍 {spot.distance}
+                      <p className="text-sm text-muted-foreground flex items-center space-x-1" data-testid={`text-distance-${spot.id}`}>
+                        <MapPin className="h-3 w-3" />
+                        <span>{spot.distance}</span>
                       </p>
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="flex items-center space-x-1">
@@ -327,8 +329,9 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
           {/* Offer */}
           <Card className="border-parking-booking/20 bg-parking-booking/5">
             <CardContent className="p-4">
-              <p className="text-sm font-medium text-parking-booking" data-testid="text-offer">
-                🌟 Save 20% with Weekly Pass for ₹299!
+              <p className="text-sm font-medium text-parking-booking flex items-center space-x-2" data-testid="text-offer">
+                <Star className="h-4 w-4" />
+                <span>Save 20% with Weekly Pass for ₹299!</span>
               </p>
             </CardContent>
           </Card>
@@ -408,15 +411,17 @@ export default function BookingFlow({ onBack, onComplete }: BookingFlowProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-3 h-3 bg-accent rounded-full animate-pulse" />
-                <span className="font-semibold text-accent" data-testid="text-booking-status">
-                  ✅ Booking Confirmed
+                <span className="font-semibold text-accent flex items-center space-x-1" data-testid="text-booking-status">
+                  <Check className="h-4 w-4" />
+                  <span>Booking Confirmed</span>
                 </span>
               </div>
               <p className="text-lg font-bold" data-testid="text-time-remaining">
                 Reserved for: 14:32 mins
               </p>
-              <p className="text-sm text-muted-foreground" data-testid="text-booking-duration">
-                ⏰ 2:30 PM - 4:30 PM
+              <p className="text-sm text-muted-foreground flex items-center justify-center space-x-1" data-testid="text-booking-duration">
+                <Clock className="h-3 w-3" />
+                <span>2:30 PM - 4:30 PM</span>
               </p>
             </div>
           </CardContent>

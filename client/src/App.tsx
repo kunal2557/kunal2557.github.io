@@ -13,8 +13,11 @@ import UserDashboard from "@/components/UserDashboard";
 import VendorDashboard from "@/components/VendorDashboard";
 import BookingFlow from "@/components/BookingFlow";
 import BottomNavigation from "@/components/BottomNavigation";
+import ProfileScreen from "@/components/ProfileScreen";
+import UserRegistration from "@/components/UserRegistration";
+import VendorRegistration from "@/components/VendorRegistration";
 
-type AppState = 'landing' | 'auth' | 'userDashboard' | 'vendorDashboard' | 'booking';
+type AppState = 'landing' | 'auth' | 'userDashboard' | 'vendorDashboard' | 'booking' | 'userRegistration' | 'vendorRegistration';
 type UserMode = 'user' | 'vendor';
 
 function Router() {
@@ -31,6 +34,7 @@ function SmartParkApp() {
   const [userMode, setUserMode] = useState<UserMode>('user');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'bookings' | 'wallet' | 'profile'>('home');
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleSelectMode = (mode: UserMode) => {
     setUserMode(mode);
@@ -39,6 +43,11 @@ function SmartParkApp() {
 
   const handleLogin = () => {
     setIsAuthenticated(true);
+    // Navigate to comprehensive registration first
+    setAppState(userMode === 'user' ? 'userRegistration' : 'vendorRegistration');
+  };
+
+  const handleRegistrationComplete = () => {
     setAppState(userMode === 'user' ? 'userDashboard' : 'vendorDashboard');
   };
 
@@ -59,6 +68,22 @@ function SmartParkApp() {
 
   const handleBackToDashboard = () => {
     setAppState(userMode === 'user' ? 'userDashboard' : 'vendorDashboard');
+    setShowProfile(false);
+  };
+
+  const handleTabChange = (tab: 'home' | 'bookings' | 'wallet' | 'profile') => {
+    setActiveTab(tab);
+    if (tab === 'profile') {
+      setShowProfile(true);
+    } else {
+      setShowProfile(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setAppState('landing');
+    setIsAuthenticated(false);
+    setShowProfile(false);
   };
 
   const renderContent = () => {
@@ -78,17 +103,41 @@ function SmartParkApp() {
       case 'userDashboard':
         return (
           <>
-            <UserDashboard 
-              onShowBooking={handleShowBooking}
-              onSwitchToVendor={handleSwitchMode}
-            />
+            {showProfile ? (
+              <ProfileScreen
+                onBack={() => setShowProfile(false)}
+                onSwitchToVendor={handleSwitchMode}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <UserDashboard 
+                onShowBooking={handleShowBooking}
+                onSwitchToVendor={handleSwitchMode}
+              />
+            )}
             <BottomNavigation 
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
               walletBalance={234}
               activeBookings={2}
             />
           </>
+        );
+      
+      case 'userRegistration':
+        return (
+          <UserRegistration 
+            onBack={() => setAppState('auth')}
+            onComplete={handleRegistrationComplete}
+          />
+        );
+
+      case 'vendorRegistration':
+        return (
+          <VendorRegistration 
+            onBack={() => setAppState('auth')}
+            onComplete={handleRegistrationComplete}
+          />
         );
       
       case 'vendorDashboard':
@@ -122,10 +171,8 @@ function SmartParkApp() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <Toaster />
+      <Router />
     </QueryClientProvider>
   );
 }

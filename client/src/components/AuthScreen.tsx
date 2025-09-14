@@ -12,7 +12,7 @@ interface AuthScreenProps {
 }
 
 export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
-  const [step, setStep] = useState<'phone' | 'otp' | 'register'>('phone');
+  const [step, setStep] = useState<'phone' | 'otp' | 'register' | 'comprehensive-registration'>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [userData, setUserData] = useState({
@@ -40,7 +40,8 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
 
   const handleCompleteRegistration = () => {
     console.log('Registration completed:', userData);
-    onLogin();
+    // Navigate to comprehensive registration
+    setStep('comprehensive-registration');
   };
 
   const content = {
@@ -187,6 +188,12 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
         </div>
       </div>
     );
+  }
+
+  if (step === 'comprehensive-registration') {
+    // Navigate to comprehensive registration flow
+    onLogin(); // This will trigger the comprehensive registration in App.tsx
+    return null;
   }
 
   return (
