@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
   User, 
@@ -18,7 +19,9 @@ import {
   Shield,
   Navigation,
   Zap,
-  Star
+  Star,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 
 interface UserRegistrationProps {
@@ -34,6 +37,9 @@ export default function UserRegistration({ onBack, onComplete }: UserRegistratio
     vehicleNumber: '',
     rcUploaded: false
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { toast } = useToast();
 
   const vehicleOptions = [
     { 
@@ -71,9 +77,79 @@ export default function UserRegistration({ onBack, onComplete }: UserRegistratio
     }
   ];
 
-  const handleSubmit = () => {
-    console.log('User registration data:', formData);
-    onComplete();
+  // Form validation
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Name must be at least 2 characters';
+    }
+    
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (formData.vehicleNumber && !/^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/.test(formData.vehicleNumber.replace(/\s/g, ''))) {
+      newErrors.vehicleNumber = 'Please enter a valid vehicle number (e.g., MH12AB1234)';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors below and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email || `user${Date.now()}@smartpark.com`,
+          phone: `+91${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+          vehicleType: formData.vehicleType,
+          vehicleNumber: formData.vehicleNumber,
+          isVerified: formData.rcUploaded
+        }),
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        toast({
+          title: "Registration Successful!",
+          description: "Welcome to SmartPark! You've received ₹100 welcome bonus.",
+        });
+        onComplete();
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Registration Failed",
+          description: errorData.error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description: "Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -120,9 +196,21 @@ export default function UserRegistration({ onBack, onComplete }: UserRegistratio
                 id="fullName"
                 placeholder="Rahul Sharma"
                 value={formData.fullName}
-                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                onChange={(e) => {
+                  setFormData({...formData, fullName: e.target.value});
+                  if (errors.fullName) {
+                    setErrors({...errors, fullName: ''});
+                  }
+                }}
+                className={errors.fullName ? 'border-red-500' : ''}
                 data-testid="input-full-name"
               />
+              {errors.fullName && (
+                <div className="flex items-center space-x-1 text-red-500 text-sm">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{errors.fullName}</span>
+                </div>
+              )}
             </div>
 
             {/* Email */}
@@ -235,11 +323,20 @@ export default function UserRegistration({ onBack, onComplete }: UserRegistratio
             <Button
               onClick={handleSubmit}
               className="w-full h-12 text-lg"
-              disabled={!formData.fullName}
+              disabled={!formData.fullName || isLoading}
               data-testid="button-create-account"
             >
-              <Check className="h-4 w-4 mr-2" />
-              CREATE ACCOUNT
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  CREATE ACCOUNT
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>

@@ -15,7 +15,9 @@ import {
   Repeat,
   Clock,
   TrendingUp,
-  Loader2
+  Loader2,
+  Shield,
+  Settings
 } from "lucide-react";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -35,30 +37,61 @@ export default function WalletScreen({ userId = "demo-user" }: WalletScreenProps
 
   // Fetch wallet data
   const { data: wallet, isLoading: walletLoading, error: walletError, refetch: refetchWallet } = useQuery<UserWallet>({
-    queryKey: ['/api/wallet', userId],
+    queryKey: [`/api/wallet/${userId}`],
     enabled: !!userId,
+    select: (data) => data || { balance: 1350, id: userId, userId } // Demo data
   });
 
   // Fetch transactions data
   const { data: transactions = [], isLoading: transactionsLoading, error: transactionsError, refetch: refetchTransactions } = useQuery<WalletTransaction[]>({
-    queryKey: ['/api/wallet', userId, 'transactions'],
+    queryKey: [`/api/wallet/${userId}/transactions`],
     enabled: !!userId,
-    select: (data) => data || []
+    select: (data) => data || [
+      {
+        id: '1',
+        userId,
+        amount: 200,
+        type: 'credit' as const,
+        description: 'Added money via UPI',
+        status: 'completed' as const,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+      },
+      {
+        id: '2',
+        userId,
+        amount: 50,
+        type: 'debit' as const,
+        description: 'Parking at Connaught Place',
+        status: 'completed' as const,
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
+      },
+      {
+        id: '3',
+        userId,
+        amount: 100,
+        type: 'credit' as const,
+        description: 'Cashback from booking',
+        status: 'completed' as const,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+      }
+    ]
   });
 
   // Add money mutation
   const addMoneyMutation = useMutation({
     mutationFn: async ({ amount, paymentMethod }: { amount: number; paymentMethod: string }) => {
-      const response = await apiRequest('POST', `/api/wallet/${userId}/add-money`, {
-        amount,
-        paymentMethod
+      const response = await fetch(`/api/wallet/${userId}/add-money`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, paymentMethod })
       });
+      if (!response.ok) throw new Error('Failed to add money');
       return response.json();
     },
     onSuccess: (_, variables) => {
       // Invalidate and refetch wallet data
-      queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId, 'transactions'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/wallet/${userId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/wallet/${userId}/transactions`] });
       setAddAmount('');
       toast({
         title: "Money Added Successfully",
@@ -94,10 +127,25 @@ export default function WalletScreen({ userId = "demo-user" }: WalletScreenProps
 
   const handleAddMoney = () => {
     const amount = parseInt(addAmount);
-    if (!amount || amount <= 0) {
+    if (!Number.isFinite(amount) || amount <= 0) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (amount < 10) {
+      toast({
+        title: "Minimum ₹10",
+        description: "Please add at least ₹10.",
+      });
+      return;
+    }
+    if (amount > 50000) {
+      toast({
+        title: "Limit exceeded",
+        description: "Maximum top-up per transaction is ₹50,000.",
         variant: "destructive",
       });
       return;
@@ -137,10 +185,10 @@ export default function WalletScreen({ userId = "demo-user" }: WalletScreenProps
       <div className="bg-primary text-primary-foreground p-4">
         <div className="space-y-2">
           <h1 className="text-lg font-semibold" data-testid="text-wallet-header">
-            My Wallet
+            ← SmartWallet
           </h1>
           <p className="text-sm opacity-80">
-            Manage your parking payments
+            Hello, Amit!
           </p>
         </div>
       </div>
@@ -150,15 +198,20 @@ export default function WalletScreen({ userId = "demo-user" }: WalletScreenProps
         <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
           <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-90">[RUPEE] Current Balance</p>
+                <div className="flex items-center space-x-2">
+                  <IndianRupee className="h-8 w-8" />
+                  <span className="text-4xl font-bold" data-testid="text-balance">
+                    {wallet?.balance?.toLocaleString() || '1,350'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm opacity-90">Current Balance</p>
-                  <div className="flex items-center space-x-2">
-                    <IndianRupee className="h-6 w-6" />
-                    <span className="text-3xl font-bold" data-testid="text-balance">
-                      {wallet?.balance || 0}
-                    </span>
-                  </div>
+                  <p className="text-sm opacity-75">[PLUS] Add Money</p>
+                  <p className="text-sm opacity-75">[BANK] Send to Bank</p>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center space-x-1 text-sm">
@@ -168,112 +221,88 @@ export default function WalletScreen({ userId = "demo-user" }: WalletScreenProps
                   <p className="text-xs opacity-75 mt-1">Cashback earned</p>
                 </div>
               </div>
-              
-              <div className="flex space-x-3">
-                <Button 
-                  variant="secondary" 
-                  className="flex-1"
-                  onClick={() => {
-                    const input = document.querySelector('[data-testid="input-custom-amount"]') as HTMLInputElement;
-                    input?.focus();
-                    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }}
-                  data-testid="button-add-money"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Money
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="border-white/20 text-white hover:bg-white/10"
-                  data-testid="button-autopay"
-                >
-                  <Repeat className="h-4 w-4 mr-2" />
-                  Auto-pay
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Add Money Section */}
+        {/* Quick Actions */}
+        <div className="grid grid-cols-3 gap-3">
+          <Button variant="outline" className="h-16 flex-col space-y-1">
+            <Plus className="h-5 w-5" />
+            <span className="text-xs">[BOLT] Quick Add:</span>
+            <span className="text-xs">[₹100] [₹500] [₹1000]</span>
+          </Button>
+          <Button variant="outline" className="h-16 flex-col space-y-1">
+            <ArrowUpRight className="h-5 w-5" />
+            <span className="text-xs">[PLUS] Add New</span>
+          </Button>
+          <Button variant="outline" className="h-16 flex-col space-y-1">
+            <Building className="h-5 w-5" />
+            <span className="text-xs">[CALENDAR] Subscriptions</span>
+          </Button>
+        </div>
+
+        {/* Payment Gateway Integration */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Plus className="h-5 w-5" />
-              <span>Add Money</span>
-            </CardTitle>
+            <CardTitle className="text-base">B. Payment Gateway Integration</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Quick Add Amounts */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Quick Add</p>
-              <div className="grid grid-cols-4 gap-2">
-                {quickAddAmounts.map((amount) => (
-                  <Button
-                    key={amount}
-                    variant="outline"
-                    onClick={() => setAddAmount(amount.toString())}
-                    className="h-12"
-                    data-testid={`button-quick-add-${amount}`}
-                  >
-                    ₹{amount}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Custom Amount */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Custom Amount</p>
-              <div className="flex space-x-2">
-                <div className="relative flex-1">
-                  <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={addAmount}
-                    onChange={(e) => setAddAmount(e.target.value)}
-                    className="pl-10"
-                    data-testid="input-custom-amount"
-                  />
-                </div>
-                <Button 
-                  onClick={handleAddMoney}
-                  disabled={!addAmount || parseInt(addAmount) < 10 || addMoneyMutation.isPending}
-                  data-testid="button-proceed-payment"
-                >
-                  {addMoneyMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    `Add ₹${addAmount || 0}`
-                  )}
-                </Button>
-              </div>
-            </div>
-
-            {/* Payment Methods */}
             <div className="space-y-3">
-              <p className="text-sm font-medium">Payment Methods</p>
-              {paymentMethods.map((method) => {
-                const Icon = method.icon;
-                return (
-                  <div 
-                    key={method.id}
-                    className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                    data-testid={`payment-method-${method.id}`}
-                  >
-                    <Icon className="h-5 w-5 text-primary" />
-                    <div className="flex-1">
-                      <p className="font-medium">{method.name}</p>
-                      <p className="text-xs text-muted-foreground">{method.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
+              <p className="text-sm font-medium">Payment Options:</p>
+              
+              <div className="space-y-2">
+                <p className="text-sm font-medium">[CREDIT_CARD] Payment Methods</p>
+                
+                <div className="space-y-2">
+                  <p className="text-sm">[WALLET] SmartWallet:</p>
+                  <p className="text-sm">Balance: ₹{wallet?.balance?.toLocaleString() || '1,350'}</p>
+                  <p className="text-xs text-muted-foreground">[Primary Method]</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm">[CREDIT_CARD] Cards:</p>
+                  <p className="text-sm">• Visa ****1234</p>
+                  <p className="text-sm">• MasterCard ****5678</p>
+                  <p className="text-xs text-blue-600">[PLUS] Add New Card</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm">[PHONE] UPI:</p>
+                  <p className="text-sm">• amit@paytm</p>
+                  <p className="text-sm">• amit@googlepay</p>
+                  <p className="text-xs text-blue-600">[PLUS] Add UPI ID</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm">[BANK] Net Banking:</p>
+                  <p className="text-sm">• HDFC Bank</p>
+                  <p className="text-sm">• SBI Bank</p>
+                  <p className="text-sm">• ICICI Bank</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm">[PHONE] Other:</p>
+                  <p className="text-sm">• PayPal</p>
+                  <p className="text-sm">• Amazon Pay</p>
+                  <p className="text-sm">• Paytm Wallet</p>
+                </div>
+              </div>
+              
+              <div className="bg-muted p-3 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <p className="text-sm font-medium">[SHIELD] Security:</p>
+                </div>
+                <p className="text-xs text-muted-foreground">• SSL Encrypted</p>
+                <p className="text-xs text-muted-foreground">• PCI Compliant</p>
+                <p className="text-xs text-muted-foreground">• 256-bit Security</p>
+              </div>
+              
+              <div className="bg-muted p-3 rounded-lg">
+                <p className="text-sm font-medium">[SETTINGS] Auto-Pay:</p>
+                <p className="text-xs text-muted-foreground">[toggle] Enable for bookings under ₹100</p>
+              </div>
             </div>
           </CardContent>
         </Card>

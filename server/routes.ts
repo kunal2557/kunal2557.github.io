@@ -386,6 +386,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER AUTHENTICATION ROUTES
   // ========================================
 
+  // User registration endpoint
+  app.post("/api/users/register", async (req, res) => {
+    try {
+      const { name, email, phone, vehicleType, vehicleNumber, isVerified } = req.body;
+      
+      // Create user with generated username
+      const username = `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      const userData = {
+        username,
+        password: "demo123", // Demo password
+        fullName: name,
+        email: email || `${username}@smartpark.com`,
+        phone: phone || `+91${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+        userType: "user" as const
+      };
+
+      const user = await storage.createUser(userData);
+      
+      // Create vehicle if provided
+      if (vehicleType) {
+        await storage.createVehicle({
+          userId: user.id,
+          vehicleType,
+          vehicleNumber: vehicleNumber || `DEMO-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          rcUploaded: isVerified || false
+        });
+      }
+
+      // Create wallet for user
+      await storage.createWalletTransaction({
+        userId: user.id,
+        type: "credit",
+        amount: 100, // Welcome bonus
+        description: "Welcome bonus",
+        status: "completed",
+        paymentMethod: "system"
+      });
+
+      const { password, ...userResponse } = user;
+      res.status(201).json(userResponse);
+    } catch (error) {
+      handleError(res, error, "Failed to register user");
+    }
+  });
+
+  // Vendor registration endpoint
+  app.post("/api/vendors/register", async (req, res) => {
+    try {
+      const { name, email, phone, businessType, propertyType, carSlots, bikeSlots, carHourlyRate, bikeHourlyRate, accountNumber, ifscCode, upiId } = req.body;
+      
+      // Create user with generated username
+      const username = `vendor_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      const userData = {
+        username,
+        password: "demo123", // Demo password
+        fullName: name,
+        email: email || `${username}@smartpark.com`,
+        phone: phone || `+91${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+        userType: "vendor" as const
+      };
+
+      const user = await storage.createUser(userData);
+      
+      // Create vendor profile
+      await storage.createVendorProfile({
+        userId: user.id,
+        businessType: businessType || "Individual",
+        businessName: `${name}'s Parking`,
+        gstNumber: null,
+        panNumber: null,
+        bankAccountNumber: accountNumber || "DEMO123456789",
+        ifscCode: ifscCode || "DEMO0001234"
+      });
+
+      // Create a demo parking spot for the vendor
+      if (carSlots > 0 || bikeSlots > 0) {
+        await storage.createParkingSpot({
+          vendorId: user.id,
+          name: `${name}'s Parking Space`,
+          address: "Demo Location, City",
+          city: "Mumbai",
+          latitude: "19.0760",
+          longitude: "72.8777",
+          totalSpots: (carSlots || 0) + (bikeSlots || 0),
+          availableSpots: (carSlots || 0) + (bikeSlots || 0),
+          pricePerHour: carHourlyRate || 20,
+          amenities: ["CCTV", "Security"],
+          images: [],
+          isActive: true,
+          rating: 4.5,
+          reviewCount: 10
+        });
+      }
+
+      const { password, ...userResponse } = user;
+      res.status(201).json(userResponse);
+    } catch (error) {
+      handleError(res, error, "Failed to register vendor");
+    }
+  });
+
   // Create user (registration)
   app.post("/api/users", async (req, res) => {
     try {

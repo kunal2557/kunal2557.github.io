@@ -8,6 +8,7 @@ import {
   User, 
   IndianRupee
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface BottomNavigationProps {
   activeTab: 'home' | 'bookings' | 'wallet' | 'profile';
@@ -70,7 +71,12 @@ export default function BottomNavigation({
               data-testid={tab.testId}
             >
               <div className="relative">
-                <Icon className={`h-5 w-5 ${isActive ? 'text-primary' : ''}`} />
+                <motion.div
+                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  <Icon className={`h-5 w-5 ${isActive ? 'text-primary' : ''}`} />
+                </motion.div>
                 {tab.badge && (
                   <Badge 
                     className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-destructive text-destructive-foreground"

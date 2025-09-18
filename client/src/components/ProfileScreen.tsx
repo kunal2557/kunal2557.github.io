@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft,
   User, 
@@ -19,17 +21,55 @@ import {
   LogOut,
   Building2,
   Globe,
-  ChevronRight
+  ChevronRight,
+  Edit,
+  History,
+  CreditCard
 } from "lucide-react";
 
 interface ProfileScreenProps {
   onBack: () => void;
   onSwitchToVendor: () => void;
   onLogout: () => void;
+  userId?: string;
 }
 
-export default function ProfileScreen({ onBack, onSwitchToVendor, onLogout }: ProfileScreenProps) {
+export default function ProfileScreen({ onBack, onSwitchToVendor, onLogout, userId = "demo-user" }: ProfileScreenProps) {
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const { toast } = useToast();
+
+  // Fetch user profile data
+  const { data: userProfile, isLoading } = useQuery<{
+    name: string;
+    email: string;
+    phone: string;
+    vehicle: string;
+    totalBookings: number;
+    rating: number;
+    walletBalance: number;
+  }>({
+    queryKey: [`/api/users/${userId}`],
+    select: (data) => data || {
+      name: "Rahul Sharma",
+      email: "rahul@example.com",
+      phone: "+91 98765 43210",
+      vehicle: "Maruti Swift - DL01AB1234",
+      totalBookings: 24,
+      rating: 4.8,
+      walletBalance: 1350
+    }
+  });
+
+  // Fetch user statistics
+  const { data: userStats } = useQuery({
+    queryKey: [`/api/users/${userId}/stats`],
+    select: (data) => data || {
+      totalBookings: 24,
+      totalSpent: 2450,
+      avgRating: 4.8,
+      savedLocations: 5
+    }
+  });
 
   const content = {
     en: {
@@ -62,24 +102,63 @@ export default function ProfileScreen({ onBack, onSwitchToVendor, onLogout }: Pr
 
   const currentContent = content[language];
 
-  // Mock user data //todo: remove mock functionality
-  const userData = {
+  const userData = userProfile || {
     name: "Rahul Sharma",
     email: "rahul@example.com",
     phone: "+91 98765 43210",
     vehicle: "Maruti Swift - DL01AB1234",
     totalBookings: 24,
     rating: 4.8,
-    walletBalance: 234
+    walletBalance: 1350
+  };
+
+  const handleEditProfile = () => {
+    toast({
+      title: "Edit Profile",
+      description: "Profile editing feature coming soon!",
+    });
+  };
+
+  const handleViewBookingHistory = () => {
+    toast({
+      title: "Booking History",
+      description: "Booking history feature coming soon!",
+    });
+  };
+
+  const handleManagePayments = () => {
+    toast({
+      title: "Payment Methods",
+      description: "Payment management feature coming soon!",
+    });
+  };
+
+  const handleContactSupport = () => {
+    toast({
+      title: "Support",
+      description: "Redirecting to support chat...",
+    });
   };
 
   const menuItems = [
     {
       category: currentContent.accountInfo,
       items: [
-        { icon: User, label: "Personal Information", action: () => {} },
-        { icon: Car, label: "Vehicle Details", action: () => {} },
-        { icon: MapPin, label: "Saved Locations", action: () => {} }
+        { icon: Edit, label: "Edit Profile", action: handleEditProfile },
+        { icon: Car, label: "Vehicle Details", action: handleEditProfile },
+        { icon: MapPin, label: "Saved Locations", action: () => {
+          toast({ title: "Saved Locations", description: "Feature coming soon!" });
+        }}
+      ]
+    },
+    {
+      category: "Activity",
+      items: [
+        { icon: History, label: "Booking History", action: handleViewBookingHistory },
+        { icon: CreditCard, label: "Payment Methods", action: handleManagePayments },
+        { icon: Star, label: "My Reviews", action: () => {
+          toast({ title: "Reviews", description: "Feature coming soon!" });
+        }}
       ]
     },
     {
@@ -88,19 +167,33 @@ export default function ProfileScreen({ onBack, onSwitchToVendor, onLogout }: Pr
         { 
           icon: Globe, 
           label: currentContent.language, 
-          action: () => setLanguage(prev => prev === 'en' ? 'hi' : 'en'),
+          action: () => {
+            setLanguage(prev => prev === 'en' ? 'hi' : 'en');
+            toast({
+              title: "Language Changed",
+              description: `Language switched to ${language === 'en' ? 'Hindi' : 'English'}`,
+            });
+          },
           value: language === 'en' ? 'English' : 'हिंदी'
         },
-        { icon: Bell, label: currentContent.notifications, action: () => {} },
-        { icon: Shield, label: currentContent.privacy, action: () => {} }
+        { icon: Bell, label: currentContent.notifications, action: () => {
+          toast({ title: "Notifications", description: "Notification settings coming soon!" });
+        }},
+        { icon: Shield, label: currentContent.privacy, action: () => {
+          toast({ title: "Privacy", description: "Privacy settings coming soon!" });
+        }}
       ]
     },
     {
       category: currentContent.support,
       items: [
-        { icon: HelpCircle, label: currentContent.helpCenter, action: () => {} },
-        { icon: Phone, label: "Contact Support", action: () => {} },
-        { icon: Star, label: "Rate App", action: () => {} }
+        { icon: HelpCircle, label: currentContent.helpCenter, action: () => {
+          toast({ title: "Help Center", description: "Opening help center..." });
+        }},
+        { icon: Phone, label: "Contact Support", action: handleContactSupport },
+        { icon: Star, label: "Rate App", action: () => {
+          toast({ title: "Rate App", description: "Thank you for your feedback!" });
+        }}
       ]
     }
   ];

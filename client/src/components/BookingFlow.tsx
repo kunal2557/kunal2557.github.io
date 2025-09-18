@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +41,8 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [duration, setDuration] = useState(2); // hours
   const [startTime, setStartTime] = useState<Date>(new Date());
+  const [vehicleSpot, setVehicleSpot] = useState('A-15');
+  const [showQR, setShowQR] = useState(false);
   const { toast } = useToast();
 
   // Fetch parking spots from API
@@ -49,38 +51,102 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
     select: (data) => data || []
   });
 
-  // Fetch user wallet for payment validation
-  const { data: wallet } = useQuery<{balance: number}>({
+  // Fetch wallet balance with better error handling
+  const { data: walletData, refetch: refetchWallet } = useQuery({
     queryKey: ['/api/wallet', userId],
-    enabled: !!userId
+    queryFn: async () => {
+      const response = await fetch(`/api/wallet/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch wallet data');
+      }
+      return response.json();
+    },
+    enabled: !!userId,
+    retry: 2,
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   // Create booking mutation
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
-      const response = await apiRequest('POST', '/api/bookings', bookingData);
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookingData)
+      });
+      if (!response.ok) throw new Error('Booking failed');
       return response.json();
     },
-    onSuccess: (booking) => {
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['/api/bookings/user', userId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/wallet', userId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/spots'] });
-      
+    onSuccess: () => {
       setStep('confirmed');
       toast({
         title: "Booking Confirmed!",
-        description: `Your parking spot has been reserved for ${duration} hours.`,
+        description: `Your parking spot ${vehicleSpot} has been reserved.`,
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/spots'] });
     },
     onError: (error: any) => {
       toast({
         title: "Booking Failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description: error.message || "Please try again.",
         variant: "destructive",
       });
     }
   });
+
+  // Derived values
+  const selectedSpotData = useMemo(() => spots.find((s: any) => s.id === selectedSpot), [spots, selectedSpot]);
+  const calculateTotal = () => {
+    if (!selectedSpotData) return 0;
+    const baseAmount = selectedSpotData.pricePerHour * duration;
+    const platformFee = 10;
+    const gst = Math.round((baseAmount + platformFee) * 0.18);
+    return baseAmount + platformFee + gst;
+  };
+
+  const validateBeforeProceed = () => {
+    if (!selectedSpotData) {
+      toast({ title: 'Select a spot', description: 'Please choose a parking spot to continue.', variant: 'destructive' });
+      return false;
+    }
+    if (duration < 1 || duration > 24) {
+      toast({ title: 'Invalid duration', description: 'Duration must be between 1 and 24 hours.', variant: 'destructive' });
+      return false;
+    }
+    const now = new Date();
+    if (startTime.getTime() < now.getTime() - 60_000) {
+      toast({ title: 'Start time in past', description: 'Please choose a future time.', variant: 'destructive' });
+      return false;
+    }
+    return true;
+  };
+
+  // Handle booking confirmation
+  const handleBooking = () => {
+    if (!selectedSpot || !userId) return;
+    
+    if (!selectedSpotData) return;
+
+    // Check wallet balance if using wallet payment
+    if (paymentMethod === 'wallet' && walletData && walletData.balance < calculateTotal()) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Please add money to your wallet or choose another payment method.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createBookingMutation.mutate({
+      userId,
+      spotId: selectedSpot,
+      startTime: startTime.toISOString(),
+      endTime: new Date(startTime.getTime() + duration * 60 * 60 * 1000).toISOString(),
+      duration,
+      amount: calculateTotal(),
+      paymentMethod,
+    });
+  };
 
   // Calculate end time based on start time and duration
   const endTime = new Date(startTime);
@@ -104,13 +170,6 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
     }
   };
 
-  const calculateTotal = (basePrice: number) => {
-    const totalPrice = basePrice * duration; // Price per hour * duration
-    const platformFee = 10;
-    const gst = Math.round((totalPrice + platformFee) * 0.18);
-    return totalPrice + platformFee + gst;
-  };
-
   // Handle booking confirmation
   const handleConfirmBooking = () => {
     if (!selectedSpot || !userId) return;
@@ -118,10 +177,10 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
     const selectedSpotData = spots.find(s => s.id === selectedSpot);
     if (!selectedSpotData) return;
     
-    const totalAmount = calculateTotal(selectedSpotData.pricePerHour);
+    const totalAmount = calculateTotal();
     
     // Check wallet balance only if wallet payment is selected
-    if (paymentMethod === 'wallet' && (!wallet || wallet.balance < totalAmount)) {
+    if (paymentMethod === 'wallet' && walletData?.balance < totalAmount) {
       toast({
         title: "Insufficient Balance",
         description: "Please add money to your wallet to complete this booking.",
@@ -209,7 +268,7 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setDuration(duration + 1)}
+                      onClick={() => setDuration(Math.min(24, duration + 1))}
                       data-testid="button-increase-duration"
                     >
                       <Plus className="h-4 w-4" />
@@ -274,7 +333,7 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedSpot(spot.id);
-                          setStep('payment');
+                          if (validateBeforeProceed()) setStep('payment');
                         }}
                         className={`${getSpotColor(spot.spotType)} text-white hover:opacity-90`}
                         data-testid={`button-book-${spot.id}`}
@@ -393,7 +452,7 @@ export default function BookingFlow({ onBack, onComplete, spotId, userId = "demo
                 <Wallet className="h-5 w-5" />
                 <div className="flex-1">
                   <p className="font-medium">Wallet</p>
-                  <p className="text-sm text-muted-foreground">Balance: ₹{wallet?.balance || 0}</p>
+                  <p className="text-sm text-muted-foreground">Balance: ₹{walletData?.balance || 0}</p>
                 </div>
                 {paymentMethod === 'wallet' && <Check className="h-5 w-5 text-primary" />}
               </div>

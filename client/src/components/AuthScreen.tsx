@@ -40,8 +40,16 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
   const handleVerifyOTP = () => {
     if (otp.length === 6) {
       console.log(`Verifying OTP: ${otp}`);
-      // For demo, simulate new user registration
-      setStep('register');
+      // Simulate checking if user exists
+      const isExistingUser = otp === '123456'; // Demo: 123456 = existing user, others = new user
+      
+      if (isExistingUser) {
+        // Existing user - redirect to main dashboard
+        onLogin();
+      } else {
+        // New user - go to registration
+        setStep('register');
+      }
     }
   };
 
@@ -122,12 +130,22 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
 
               <div className="text-center space-y-2 text-sm">
                 <p>New {isUser ? 'User' : 'Vendor'}?</p>
-                <Button variant="ghost" className="text-primary p-0 h-auto" data-testid="button-register">
+                <Button 
+                  variant="ghost" 
+                  className="text-primary p-0 h-auto" 
+                  onClick={() => setStep('comprehensive-registration')}
+                  data-testid="button-register"
+                >
                   Register as {isUser ? 'User' : 'Vendor'}
                 </Button>
                 
                 <p className="mt-4">Wrong choice?</p>
-                <Button variant="ghost" className="text-muted-foreground p-0 h-auto" data-testid="button-switch-mode">
+                <Button 
+                  variant="ghost" 
+                  className="text-muted-foreground p-0 h-auto" 
+                  onClick={onBack}
+                  data-testid="button-switch-mode"
+                >
                   Go to {isUser ? 'Vendor' : 'User'} Login
                 </Button>
               </div>
@@ -161,6 +179,11 @@ export default function AuthScreen({ mode, onBack, onLogin }: AuthScreenProps) {
               <CardDescription data-testid="text-otp-description">
                 Enter OTP sent to +91-{phone}
               </CardDescription>
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm">
+                <p className="font-medium text-blue-800">Demo Instructions:</p>
+                <p className="text-blue-600">• Enter <strong>123456</strong> for existing user (direct login)</p>
+                <p className="text-blue-600">• Enter any other 6-digit code for new user registration</p>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">

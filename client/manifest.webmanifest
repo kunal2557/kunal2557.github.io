@@ -1,0 +1,20 @@
+{
+  "name": "SmartPark",
+  "short_name": "SmartPark",
+  "description": "Find parking spots instantly or list your space to earn.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0f",
+  "theme_color": "#16a34a",
+  "icons": [
+    {
+      "src": "/icons/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
+

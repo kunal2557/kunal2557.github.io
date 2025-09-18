@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPark Mobile Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+        
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .device-frame {
+            background: #1a1a1a;
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .device-screen {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 0 2px #333;
+        }
+        
+        .iphone-frame {
+            width: 280px;
+            height: 560px;
+            margin: 0 auto;
+        }
+        
+        .android-frame {
+            width: 300px;
+            height: 580px;
+            margin: 0 auto;
+        }
+        
+        .device-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 13px;
+        }
+        
+        .device-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .device-specs {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+        
+        .camera-notch {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 20px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            z-index: 10;
+        }
+        
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            margin-top: 30px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .instructions ul {
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            padding-left: 10px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .iphone-frame, .android-frame {
+                width: 250px;
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <h1>📱 SmartPark Mobile Preview</h1>
+        <p class="subtitle">See how your parking app looks on real mobile devices</p>
+        
+        <div class="devices-grid">
+            <!-- iPhone Frame -->
+            <div class="device-frame">
+                <div class="device-label">iPhone 14 Pro</div>
+                <div class="device-specs">6.1" • iOS • 393×852</div>
+                <div class="device-screen iphone-frame">
+                    <div class="camera-notch"></div>
+                    <iframe 
+                        src="http://localhost:8080" 
+                        class="device-iframe"
+                        title="iPhone Preview">
+                    </iframe>
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+            
+            <!-- Android Frame -->
+            <div class="device-frame">
+                <div class="device-label">Samsung Galaxy S23</div>
+                <div class="device-specs">6.1" • Android • 360×780</div>
+                <div class="device-screen android-frame">
+                    <iframe 
+                        src="http://localhost:8080" 
+                        class="device-iframe"
+                        title="Android Preview">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>🎯 Mobile Experience Features</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <h4>Interactive Map</h4>
+                    <p>Real map tiles with touch gestures - pinch to zoom, tap markers</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📍</div>
+                    <h4>Location Services</h4>
+                    <p>Auto-detect your location and find nearby parking spots</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h4>Mobile Payments</h4>
+                    <p>UPI, wallet, and card payments optimized for mobile</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h4>Uber-Style UI</h4>
+                    <p>Modern, intuitive interface designed for one-handed use</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px;">📋 How to Test Mobile Features</h3>
+            <ul>
+                <li>🔄 <strong>Rotate device:</strong> App adapts to portrait/landscape</li>
+                <li>👆 <strong>Touch gestures:</strong> Tap, swipe, pinch-to-zoom on map</li>
+                <li>📱 <strong>Native feel:</strong> Smooth animations and transitions</li>
+                <li>🌐 <strong>Offline-ready:</strong> Core features work without internet</li>
+                <li>🔋 <strong>Battery optimized:</strong> Efficient location and map usage</li>
+                <li>♿ <strong>Accessible:</strong> Screen reader and voice control support</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate device rotation on click
+            const deviceFrames = document.querySelectorAll('.device-frame');
+            
+            deviceFrames.forEach(frame => {
+                frame.addEventListener('click', function() {
+                    this.style.transform = this.style.transform === 'rotate(90deg)' ? 'rotate(0deg)' : 'rotate(90deg)';
+                    this.style.transition = 'transform 0.5s ease';
+                });
+            });
+            
+            // Add loading animation
+            const iframes = document.querySelectorAll('.device-iframe');
+            iframes.forEach(iframe => {
+                iframe.addEventListener('load', function() {
+                    this.style.opacity = '1';
+                    this.style.transition = 'opacity 0.3s ease';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

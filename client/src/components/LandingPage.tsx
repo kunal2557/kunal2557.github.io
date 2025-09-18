@@ -162,48 +162,89 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
       </div>
 
       {/* Hero Section */}
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 to-accent/10 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-8 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-primary rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-accent rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-primary/30 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="w-full max-w-md space-y-8 text-center relative z-10">
           {/* Logo and Title */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-center">
-              <div className="bg-primary text-primary-foreground p-4 rounded-2xl">
-                <Car className="h-8 w-8" />
+              <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-6 rounded-3xl shadow-2xl transform hover:scale-105 transition-transform duration-300">
+                <Car className="h-10 w-10" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-primary" data-testid="text-app-title">
-              {currentContent.title}
-            </h1>
-            <p className="text-lg text-muted-foreground" data-testid="text-app-subtitle">
-              {currentContent.subtitle}
-            </p>
+            <div className="space-y-3">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" data-testid="text-app-title">
+                {currentContent.title}
+              </h1>
+              <p className="text-xl text-muted-foreground font-medium" data-testid="text-app-subtitle">
+                {currentContent.subtitle}
+              </p>
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Live in 50+ Cities</span>
+                </div>
+                <span>•</span>
+                <span>2M+ Users</span>
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}
           <div className="space-y-4">
             <Button
               onClick={() => onSelectMode('user')}
-              className="w-full h-16 text-lg bg-primary hover:bg-primary/90"
+              className="w-full h-18 text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl transform hover:scale-105 transition-all duration-300 border-0"
               data-testid="button-user-mode"
             >
-              <Car className="h-6 w-6 mr-3" />
-              <div className="text-center">
-                <div className="font-semibold">{currentContent.userButton}</div>
-                <div className="text-sm opacity-90">{currentContent.userSubtext}</div>
+              <div className="flex items-center space-x-4">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <Car className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-lg">{currentContent.userButton}</div>
+                  <div className="text-sm opacity-90">{currentContent.userSubtext}</div>
+                </div>
               </div>
             </Button>
 
             <Button
               onClick={() => onSelectMode('vendor')}
-              className="w-full h-16 text-lg bg-accent hover:bg-accent/90 text-white"
+              className="w-full h-18 text-lg bg-gradient-to-r from-accent to-accent/90 hover:from-accent/90 hover:to-accent text-white shadow-xl transform hover:scale-105 transition-all duration-300 border-0"
               data-testid="button-vendor-mode"
             >
-              <Building2 className="h-6 w-6 mr-3" />
-              <div className="text-center">
-                <div className="font-semibold">{currentContent.vendorButton}</div>
-                <div className="text-sm opacity-90">{currentContent.vendorSubtext}</div>
+              <div className="flex items-center space-x-4">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-lg">{currentContent.vendorButton}</div>
+                  <div className="text-sm opacity-90">{currentContent.vendorSubtext}</div>
+                </div>
               </div>
             </Button>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-4 pt-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">30s</div>
+              <div className="text-xs text-muted-foreground">Avg Booking</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">₹20</div>
+              <div className="text-xs text-muted-foreground">Starting From</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-accent">24/7</div>
+              <div className="text-xs text-muted-foreground">Support</div>
+            </div>
           </div>
         </div>
       </div>
@@ -220,16 +261,18 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className={`${feature.bgColor} border-0`} data-testid={`card-feature-${index}`}>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className={`w-12 h-12 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center`}>
-                      <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+              <Card key={index} className={`${feature.bgColor} border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2`} data-testid={`card-feature-${index}`}>
+                <CardContent className="p-8">
+                  <div className="space-y-6">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center shadow-lg`}>
+                      <feature.icon className={`h-8 w-8 ${feature.iconColor}`} />
                     </div>
-                    <h3 className="text-xl font-semibold">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
+                    <div className="space-y-3">
+                      <h3 className="text-2xl font-bold">{feature.title}</h3>
+                      <p className="text-muted-foreground text-lg leading-relaxed">{feature.description}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -239,49 +282,114 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
       </div>
 
       {/* Trusted by Millions Section */}
-      <div className="py-16 px-4 bg-muted/50">
+      <div className="py-20 px-4 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-12" data-testid="text-trusted-by">
-            {currentContent.trustedBy}
-          </h2>
+          <div className="mb-16">
+            <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" data-testid="text-trusted-by">
+              {currentContent.trustedBy}
+            </h2>
+            <p className="text-xl text-muted-foreground">Join the parking revolution across India</p>
+          </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="space-y-3" data-testid={`stat-${index}`}>
+              <div key={index} className="space-y-4 group" data-testid={`stat-${index}`}>
                 <div className="flex items-center justify-center">
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-full">
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
+                    <stat.icon className={`h-8 w-8 ${stat.color}`} />
                   </div>
                 </div>
-                <div className="text-3xl font-bold">{stat.number}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+                <div className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{stat.number}</div>
+                <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</div>
               </div>
             ))}
+          </div>
+
+          {/* Social Proof */}
+          <div className="mt-16 grid md:grid-cols-3 gap-8">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+              <div className="flex items-center space-x-2 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-muted-foreground italic">"SmartPark saved me 30 minutes every day. Best parking app!"</p>
+              <p className="text-sm font-semibold mt-2">- Priya Sharma, Mumbai</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+              <div className="flex items-center space-x-2 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-muted-foreground italic">"Earning ₹15,000 monthly from my parking space!"</p>
+              <p className="text-sm font-semibold mt-2">- Rajesh Kumar, Delhi</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+              <div className="flex items-center space-x-2 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-muted-foreground italic">"Super reliable and secure. Highly recommended!"</p>
+              <p className="text-sm font-semibold mt-2">- Anita Singh, Bangalore</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* How It Works Section */}
-      <div className="py-16 px-4 bg-background">
+      <div className="py-20 px-4 bg-background">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold" data-testid="text-how-it-works">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" data-testid="text-how-it-works">
               {currentContent.howItWorks}
             </h2>
+            <p className="text-xl text-muted-foreground">Simple steps to park smarter</p>
           </div>
 
-          <div className="space-y-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step, index) => (
-              <div key={index} className="flex items-start space-x-4" data-testid={`step-${index}`}>
-                <div className={`${step.color} text-white rounded-full w-10 h-10 flex items-center justify-center font-bold flex-shrink-0`}>
-                  {step.number}
+              <div key={index} className="text-center space-y-6 group" data-testid={`step-${index}`}>
+                <div className="relative">
+                  <div className={`${step.color} text-white rounded-3xl w-20 h-20 flex items-center justify-center font-bold text-2xl mx-auto shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                    {step.number}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-gradient-to-r from-primary/30 to-accent/30 transform -translate-y-1/2"></div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.description}</p>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold">{step.title}</h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed">{step.description}</p>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* App Preview Mockup */}
+          <div className="mt-20 text-center">
+            <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-3xl p-8 max-w-md mx-auto">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">SmartPark App</div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-primary/20 rounded-full w-3/4"></div>
+                  <div className="h-4 bg-accent/20 rounded-full w-1/2"></div>
+                  <div className="h-8 bg-gradient-to-r from-primary to-accent rounded-lg"></div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-6 bg-muted rounded"></div>
+                    <div className="h-6 bg-muted rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
